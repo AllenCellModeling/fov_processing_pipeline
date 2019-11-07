@@ -124,14 +124,12 @@ def get_cell_data(is_local=False):
     # Remove unnecessary columns
     ############################################
 
-    drop_columns = [
-        "StructureSegmentationFileId",
-        "NucleusSegmentationFileId",
-        "StructEducationName",
-    ]
     drop_columns = [column for column in cell_data.columns if "FileId" in column] + [
         "StructEducationName",
         "StructureSegmentationAlgorithmVersion",
+        "StructureSegmentationFileId",
+        "NucleusSegmentationFileId",
+        "RunId",
     ]
 
     cell_data = cell_data.drop(drop_columns, axis=1)
@@ -143,13 +141,9 @@ def get_cell_data(is_local=False):
     id_columns = [column for column in cell_data.columns if column[-2:] == "Id"]
 
     for id_column in id_columns:
-        try:
-            cell_data["{}_rng".format(id_column)] = [
-                int2rand(my_id) for my_id in cell_data[id_column]
-            ]
-        except:
-            import pdb
-            pdb.set_trace()
+        cell_data["{}_rng".format(id_column)] = [
+            int2rand(int(my_id)) for my_id in cell_data[id_column]
+        ]
 
     return cell_data
 
@@ -168,7 +162,7 @@ def cell_data_to_fov_data(cell_data):
 
     fov_data = fov_data.drop(drop_columns, axis=1)
 
-    raise fov_data
+    return fov_data
 
 
 def get_fov_data(is_local=False):
