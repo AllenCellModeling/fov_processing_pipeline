@@ -4,93 +4,81 @@
 [![Documentation](https://github.com/gregjohnso/fov_processing_pipeline/workflows/Documentation/badge.svg)](https://gregjohnso.github.io/fov_processing_pipeline)
 [![Code Coverage](https://codecov.io/gh/gregjohnso/fov_processing_pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/gregjohnso/fov_processing_pipeline)
 
-Pipeline tools for analyzing FOVs
+Pipeline tools for high-throughput analysis of AICS Pipeline FOVs
 
 ---
 
 ## Features
-* Store values and retain the prior value in memory
-* ... some other functionality
+It's a jupyter notebook for Pipeline 4 Data!
+The notebook desmonstrates a proof of concept for...
+* Accessing files via labkey
+* Access FOV-level and Cell-level images and metadata
+* Make some simple plots for data exploration
 
-## Quick Start
-```python
-from fov_processing_pipeline import Example
+For more information see [this presentation](https://docs.google.com/presentation/d/13nFQ0KDxBti7Vgont6fcrv0gaE3NaGr-Deb-aNl2xLY/edit?usp=sharing)
 
-a = Example()
-a.get_value()  # 10
-```
+
+## If installing *somewhere other than AICS compute-cluster infrastructure* (e.g. your local machine)
+... you will need:
+
+**AICS certificates** to be able to install the required package `lkaccess`. Instructions to setup certs on an macOS machine are as follows:
+
+- Visit http://confluence.corp.alleninstitute.org/display/SF/Certs+on+OS+X
+- Download the three .crt files, open each and keychain to System and hit 'Add' to trust
+- Download `pip_conf_setup.sh` to project directory
+- Install wget: `brew install wget`
+- Run the downloaded setup file: `sudo bash pip_conf_setup.sh`
 
 ## Installation
-**Stable Release:** `pip install fov_processing_pipeline`<br>
-**Development Head:** `pip install git+https://github.com/gregjohnso/fov_processing_pipeline.git`
+**(Optional)** Make a conda environment
+```
+conda create --name fov_processing_pipeline python=3.7  
+conda activate fov_processing_pipeline
+```
+
+**Clone the Repo**
+```
+git clone https://github.com/AllenCellModeling/fov_processing_pipeline.git
+cd fov_processing_pipeline
+```
+
+**Install**  
+
+```
+pip install .
+```
+or install for development
+```
+pip install -e .[dev]
+```
+
+## If running locally (e.g. macOS)
+(do this after the installation)  
+Note: Image loading with the remotely mounting the data repository will be much slower than running from AICS compute infrastructure.
+
+**mount the remote data repository**, which can be done on macOS with 
+
+```
+mount_smbfs //<YOUR_USERNAME>@allen/programs/allencell/data ./data/
+```
+
+To unmount when you're all done:
+
+```
+umount ./data/
+```
+
+## Running the notebook
+```
+jupyter notebook accessing_and_exploring_data.ipynb
+```
+This should start a web browser with the notebook.
 
 ## Documentation
-For full package documentation please visit [gregjohnso.github.io/fov_processing_pipeline](https://gregjohnso.github.io/fov_processing_pipeline).
+For full package documentation please visit [AllenCellModeling.github.io/fov_processing_pipeline](https://AllenCellModeling.github.io/fov_processing_pipeline).
 
 ## Development
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information related to developing the code.
-
-#### The Three Commands You Need To Know
-1. `make build`
-
-    This will run `tox` which will run all your tests in both Python 3.6 and Python 3.7 as well as linting your code.
-
-2. `make clean`
-
-    This will clean up various Python and build generated files so that you can ensure that you are working in a clean
-    environment.
-
-3. `make docs`
-
-    This will generate and launch a web browser to view the most up-to-date documentation for your Python package.
-
-#### Suggested Git Branch Strategy
-1. `master` is for the most up-to-date development, very rarely should you directly commit to this branch. GitHub
-Actions will run on every push and on a CRON to this branch but still recommended to commit to your development
-branches and make pull requests to master.
-2. `stable` is for releases only. When you want to release your project on PyPI, simply make a PR from `master` to
-`stable`, this template will handle the rest as long as you have added your PyPI information described in the above
-**Optional Steps** section.
-3. Your day-to-day work should exist on branches separate from `master`. Even if it is just yourself working on the
-repository, make a PR from your working branch to `master` so that you can ensure your commits don't break the
-development head. GitHub Actions will run on every push to any branch or any pull request from any branch to any other
-branch.
-
-#### Additional Optional Setup Steps:
-* Register fov_processing_pipeline with Codecov:
-  * Make an account on [codecov.io](https://codecov.io) (Recommended to sign in with GitHub)
-  * Select `gregjohnso` and click: `Add new repository`
-  * Copy the token provided, go to your [GitHub repository's settings and under the `Secrets` tab](https://github.com/gregjohnso/fov_processing_pipeline/settings/secrets),
-  add a secret called `CODECOV_TOKEN` with the token you just copied.
-  Don't worry, no one will see this token because it will be encrypted.
-* Generate and add an access token as a secret to the repository for auto documentation generation to work
-  * Go to your [GitHub account's Personal Access Tokens page](https://github.com/settings/tokens)
-  * Click: `Generate new token`
-  * _Recommendations:_
-    * _Name the token: "Auto-Documentation Generation" or similar so you know what it is being used for later_
-    * _Select only: `repo:status`, `repo_deployment`, and `public_repo` to limit what this token has access to_
-  * Copy the newly generated token
-  * Go to your [GitHub repository's settings and under the `Secrets` tab](https://github.com/gregjohnso/fov_processing_pipeline/settings/secrets),
-  add a secret called `ACCESS_TOKEN` with the personal access token you just created.
-  Don't worry, no one will see this password because it will be encrypted.
-* Register your project with PyPI:
-  * Make an account on [pypi.org](https://pypi.org)
-  * Go to your [GitHub repository's settings and under the `Secrets` tab](https://github.com/gregjohnso/fov_processing_pipeline/settings/secrets),
-  add a secret called `PYPI_TOKEN` with your password for your PyPI account.
-  Don't worry, no one will see this password because it will be encrypted.
-  * Next time you push to the branch: `stable`, GitHub actions will build and deploy your Python package to PyPI.
-  * _Recommendation: Prior to pushing to `stable` it is recommended to install and run `bumpversion` as this will,
-  tag a git commit for release and update the `setup.py` version number._
-* Add branch protections to `master` and `stable`
-    * To protect from just anyone pushing to `master` or `stable` (the branches with more tests and deploy
-    configurations)
-    * Go to your [GitHub repository's settings and under the `Branches` tab](https://github.com/gregjohnso/fov_processing_pipeline/settings/branches), click `Add rule` and select the
-    settings you believe best.
-    * _Recommendations:_
-      * _Require pull request reviews before merging_
-      * _Require status checks to pass before merging (Recommended: lint and test)_
-      * _Restrict who can push to matching branches_
-
 
 ***Free software: Allen Institute Software License***
 

@@ -41,9 +41,17 @@ interactive_requirements = [
     "altair",
     "jupyterlab",
     "matplotlib",
+    "ipykernel"
 ]
 
-requirements = []
+requirements = [
+    "pandas",
+    "tifffile==0.15.1",
+    "matplotlib",
+    "lkaccess",
+    "jupyterlab",
+    "matplotlib",
+]
 
 extra_requirements = {
     "test": test_requirements,
