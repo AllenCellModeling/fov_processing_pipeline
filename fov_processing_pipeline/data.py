@@ -3,11 +3,12 @@ import lkaccess.contexts
 import pandas as pd
 import numpy as np
 from sys import platform
+from aicsimageio import imread
 
 from .utils import int2rand
 
 
-def get_cell_data(is_local=False):
+def get_cell_data():
     # TODO
     # remove unnecessary column from dataframe
 
@@ -97,26 +98,26 @@ def get_cell_data(is_local=False):
     ############################################
     # Adjust file paths
     ############################################
-    if is_local:
-        if platform == "linux" or platform == "linux2":
-            # linux
-            pass
-        elif platform == "darwin":
-            # if we're in osx, we change all the read paths from
-            # /allen/programs/allencell/data/...
-            # to
-            # ./data/...
 
-            for column in data.columns:
-                if "ReadPath" in column:
-                    data[column] = [
-                        readpath.replace("/allen/programs/allencell/", "./")
-                        for readpath in data[column]
-                    ]
-        else:
-            raise NotImplementedError(
-                "OSes other than Linux and Mac are currently not supported."
-            )
+    if platform == "linux" or platform == "linux2":
+        # linux
+        pass
+    elif platform == "darwin":
+        # if we're in osx, we change all the read paths from
+        # /allen/programs/allencell/data/...
+        # to
+        # ./data/...
+
+        for column in data.columns:
+            if "ReadPath" in column:
+                data[column] = [
+                    readpath.replace("/allen/programs/allencell/", "./")
+                    for readpath in data[column]
+                ]
+    else:
+        raise NotImplementedError(
+            "OSes other than Linux and Mac are currently not supported."
+        )
 
     cell_data = data
 
@@ -157,7 +158,7 @@ def cell_data_to_fov_data(cell_data):
     drop_columns = [
         column
         for column in fov_data.columns
-        if ("cell" in column.lower()) | ("mito" in column.lower())
+        if ("cell" in column.lower() and column.lower()!='cellline') | ("mito" in column.lower())
     ]
 
     fov_data = fov_data.drop(drop_columns, axis=1)
@@ -166,7 +167,19 @@ def cell_data_to_fov_data(cell_data):
 
 
 def get_fov_data(is_local=False):
-    cell_data = get_cell_data(is_local)
+    cell_data = get_cell_data()
 
     return cell_data_to_fov_data(cell_data)
 
+
+def row2im(row):
+    # load all channels of all z-stacks and transpose to order: c, y, x, z
+    im = imread(row.SourceReadPath).squeeze()
+    im = np.transpose(im, [0, 2, 3, 1])
+    keep_channels = []
+    for c in row.index:
+        if 'Channel' in c:
+            keep_channels.append(row[c])
+
+    return im[keep_channels, :, :, :]
+    
