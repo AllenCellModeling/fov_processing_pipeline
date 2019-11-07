@@ -1,4 +1,8 @@
-import aicsimagio
+import aicsimageio
+import os
+import pandas as pd
+import pickle
+from . import data, utils
 
 
 def row2im(df_row):
@@ -10,3 +14,36 @@ def row2im(df_row):
 def im2stats():
     # takes a FOV and returns some basic statistics
     raise NotImplementedError
+
+
+def save_load_data(save_dir, data_subset=False, overwrite=False):
+    cell_data_path = "{}/cell_data.csv".format(save_dir)
+    fov_data_path = "{}/cell_data.csv".format(save_dir)
+
+    if ~os.path.exists(cell_data_path) or overwrite:
+        cell_data, fov_data = data.get_data(data_subset=data_subset)
+
+        cell_data.to_csv(cell_data_path)
+        fov_data.to_csv(fov_data_path)
+
+    else:
+        cell_data = pd.read_csv(cell_data_path)
+        fov_data_path = pd.read_csv(fov_data_path)
+
+    return cell_data, fov_data
+
+
+def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
+    if os.path.exists(proj_path) and ~overwrite:
+        return
+
+    im = row2im(fov_row)
+    stats = im2stats(im)
+
+    with open("stats_path", "wb") as f:
+        pickle.dump(stats, f)
+
+    im_proj = utils.im2proj(im)
+    imwrite(im_proj, proj_path)
+
+    return

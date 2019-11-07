@@ -81,7 +81,7 @@ setup(
     description="Pipeline tools for analyzing FOVs",
     entry_points={
         "console_scripts": [
-            "my_example=fov_processing_pipeline.bin.my_example:main"
+            "fpp_process=fov_processing_pipeline.bin.process:main"
         ],
     },
     install_requires=requirements,
@@ -97,7 +97,7 @@ setup(
     test_suite="fov_processing_pipeline/tests",
     tests_require=test_requirements,
     extras_require=extra_requirements,
-    url="https://github.com/gregjohnso/fov_processing_pipeline",
+    url="https://github.com/AllenCellModeling/fov_processing_pipeline",
     # Do not edit this string manually, always use bumpversion
     # Details in CONTRIBUTING.rst
     version="0.1.0",

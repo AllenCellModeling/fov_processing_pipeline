@@ -7,9 +7,8 @@ from sys import platform
 from .utils import int2rand
 
 
-def get_cell_data(is_local=False):
-    # TODO
-    # remove unnecessary column from dataframe
+def get_cell_data():
+    # returns a datframe where every row is a cell
 
     use_staging = False
 
@@ -97,26 +96,26 @@ def get_cell_data(is_local=False):
     ############################################
     # Adjust file paths
     ############################################
-    if is_local:
-        if platform == "linux" or platform == "linux2":
-            # linux
-            pass
-        elif platform == "darwin":
-            # if we're in osx, we change all the read paths from
-            # /allen/programs/allencell/data/...
-            # to
-            # ./data/...
 
-            for column in data.columns:
-                if "ReadPath" in column:
-                    data[column] = [
-                        readpath.replace("/allen/programs/allencell/", "./")
-                        for readpath in data[column]
-                    ]
-        else:
-            raise NotImplementedError(
-                "OSes other than Linux and Mac are currently not supported."
-            )
+    if platform == "linux" or platform == "linux2":
+        # linux
+        pass
+    elif platform == "darwin":
+        # if we're in osx, we change all the read paths from
+        # /allen/programs/allencell/data/...
+        # to
+        # ./data/...
+
+        for column in data.columns:
+            if "ReadPath" in column:
+                data[column] = [
+                    readpath.replace("/allen/programs/allencell/", "./")
+                    for readpath in data[column]
+                ]
+    else:
+        raise NotImplementedError(
+            "OSes other than Linux and Mac are currently not supported."
+        )
 
     cell_data = data
 
@@ -148,7 +147,7 @@ def get_cell_data(is_local=False):
     return cell_data
 
 
-def cell_data_to_fov_data(cell_data):
+def _cell_data_to_fov_data(cell_data):
     FOVIds, FOVId_index = np.unique(cell_data["FOVId"], return_index=True)
 
     fov_data = cell_data.iloc[FOVId_index]
@@ -165,8 +164,21 @@ def cell_data_to_fov_data(cell_data):
     return fov_data
 
 
-def get_fov_data(is_local=False):
-    cell_data = get_cell_data(is_local)
+def get_fov_data():
+    # returns a datframe where every row is a FOV
 
-    return cell_data_to_fov_data(cell_data)
+    cell_data = get_cell_data()
 
+    return _cell_data_to_fov_data(cell_data)
+
+
+def get_data(data_subset=False):
+
+    cell_data = get_cell_data()
+
+    if data_subset:
+        raise NotImplementedError
+
+    fov_data = _cell_data_to_fov_data(cell_data)
+
+    return cell_data, fov_data
