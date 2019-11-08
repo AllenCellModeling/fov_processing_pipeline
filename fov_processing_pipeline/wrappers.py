@@ -27,6 +27,10 @@ def row2im(df_row):
 def im2stats(im):
     ############################################
     # For a given image, calculate some basic statistcs and return as dictionary
+    # Inputs:
+    #   - im: CYXZ image, numpy array
+    # Returns:
+    #   - results: dictionary of all calculated statics for the image
     ############################################
     nz = im.shape[3]
 
