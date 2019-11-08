@@ -13,6 +13,16 @@ def resources_dir() -> Path:
 
 
 @pytest.fixture
+def demo_cell_data(resources_dir):
+    return pd.read_csv("{}/cell_data.csv".format(resources_dir))
+
+
+@pytest.fixture
+def demo_cell_row(demo_cell_data):
+    return demo_cell_data.iloc[0]
+
+
+@pytest.fixture
 def demo_fov_data(resources_dir):
     return pd.read_csv("{}/fov_data.csv".format(resources_dir))
 
