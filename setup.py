@@ -51,6 +51,7 @@ requirements = [
     "lkaccess",
     "jupyterlab",
     "matplotlib",
+    "aicsimageio",
 ]
 
 extra_requirements = {

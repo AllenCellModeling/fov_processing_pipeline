@@ -8,6 +8,7 @@ from .utils import int2rand
 
 
 def get_cell_data():
+
     # returns a datframe where every row is a cell
 
     use_staging = False
@@ -156,7 +157,8 @@ def _cell_data_to_fov_data(cell_data):
     drop_columns = [
         column
         for column in fov_data.columns
-        if ("cell" in column.lower()) | ("mito" in column.lower())
+        if ("cell" in column.lower() and column.lower() != "cellline")
+        | ("mito" in column.lower())
     ]
 
     fov_data = fov_data.drop(drop_columns, axis=1)
@@ -182,3 +184,4 @@ def get_data(data_subset=False):
     fov_data = _cell_data_to_fov_data(cell_data)
 
     return cell_data, fov_data
+

@@ -1,14 +1,25 @@
-import aicsimageio
+from aicsimageio import imread
 import os
 import pandas as pd
 import pickle
+import numpy as np
+
 from . import data, utils
 
 
 def row2im(df_row):
     # take a dataframe row and returns an image in CZYX format with channels in order of
     # Brightfield, DNA, Membrane, Structure, seg_dna, seg_membrane, seg_structure
-    raise NotImplementedError
+    #
+    # load all channels of all z-stacks and transpose to order: c, y, x, z
+    im = imread(df_row.SourceReadPath).squeeze()
+    im = np.transpose(im, [0, 2, 3, 1])
+    keep_channels = []
+    for c in df_row.index:
+        if "Channel" in c:
+            keep_channels.append(df_row[c])
+
+    return im[keep_channels, :, :, :]
 
 
 def im2stats():
