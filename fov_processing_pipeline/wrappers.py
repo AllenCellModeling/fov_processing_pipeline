@@ -48,7 +48,7 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     if os.path.exists(proj_path) and ~overwrite:
         return
 
-    im = row2im(fov_row)
+    im, channel_names = row2im(fov_row)
     stats = im2stats(im)
 
     with open("stats_path", "wb") as f:

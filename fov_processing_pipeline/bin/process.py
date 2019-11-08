@@ -44,7 +44,10 @@ def main():
         help="Save directory for results",
     )
     p.add_argument(
-        "--data_subset", type=utils.str2bool, default=True, help="Use cleaned data subset"
+        "--data_subset",
+        type=utils.str2bool,
+        default=True,
+        help="Use cleaned data subset",
     )
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
