@@ -2,7 +2,9 @@ import lkaccess
 import lkaccess.contexts
 import pandas as pd
 import numpy as np
+import warnings
 from sys import platform
+
 
 from .utils import int2rand
 
@@ -185,3 +187,45 @@ def get_data(data_subset=False):
 
     return cell_data, fov_data
 
+
+def trim_data_by_cellline(df, cell_line_ids):
+
+    ############################################
+    # Return dataset with only rows having cell line ids in the given list
+    ############################################
+    ids = ['AICS-'+str(id) for id in cell_line_ids]
+    return df[df['CellLine'].isin(ids)]
+
+
+def trim_data_by_cellline_fov_count(df, n_fovs):
+
+    ############################################
+    # For all cell lines, trim number of FOVS to n_fovs (or less)
+    ############################################
+
+    keep_fov_ids = []
+    for id in pd.unique(df['CellLine']):
+        df_struct = df[df['CellLine'] == id]
+
+        # make sure the desired number of fovs isn't greater than the number of available fovs
+        if n_fovs <= pd.unique(df_struct['FOVId']).shape[0]:
+            keep_fov_ids.extend(list(np.sort(pd.unique(df_struct['FOVId_rng']))[:n_fovs],))
+
+        else:
+            warnings.warn('Desired number FOVs is greater than original number FOVS for '+id+'.')
+            warnings.warn('Keeping all FOVs for this cell line.')
+            keep_fov_ids.extend(pd.unqiue(list(df_struct['FOVId_rng'])))
+
+    return df[df['FOVId_rng'].isin(keep_fov_ids)]
+
+
+def trim_data(df, cell_line_ids=[10, 14, 25, 57, 75], n_fovs=100):
+    ############################################
+    # Trim dataset to contain only the given cell lines, with only the set number of FOVs or less
+    # preset cell line IDs are: ER, Fibrillarin (Nucleolus), Golgi, Nucleophosmin (Nucleolus), Alpha Actinin
+    # listing of cell lines by ID can be found at: https://www.allencell.org/cell-catalog.html
+    ############################################
+
+    cell_line_trim = trim_data_by_cellline(df, cell_line_ids)
+    fov_trim = trim_data_by_cellline_fov_count(cell_line_trim, n_fovs)
+    return fov_trim
