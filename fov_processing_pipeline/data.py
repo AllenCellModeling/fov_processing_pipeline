@@ -4,15 +4,14 @@ import pandas as pd
 import numpy as np
 import warnings
 from sys import platform
-from aicsimageio import imread
 
 
 from .utils import int2rand
 
 
 def get_cell_data():
-    # TODO
-    # remove unnecessary column from dataframe
+
+    # returns a datframe where every row is a cell
 
     use_staging = False
 
@@ -151,7 +150,7 @@ def get_cell_data():
     return cell_data
 
 
-def cell_data_to_fov_data(cell_data):
+def _cell_data_to_fov_data(cell_data):
     FOVIds, FOVId_index = np.unique(cell_data["FOVId"], return_index=True)
 
     fov_data = cell_data.iloc[FOVId_index]
@@ -160,7 +159,8 @@ def cell_data_to_fov_data(cell_data):
     drop_columns = [
         column
         for column in fov_data.columns
-        if ("cell" in column.lower() and column.lower()!='cellline') | ("mito" in column.lower())
+        if ("cell" in column.lower() and column.lower() != "cellline")
+        | ("mito" in column.lower())
     ]
 
     fov_data = fov_data.drop(drop_columns, axis=1)
@@ -168,22 +168,24 @@ def cell_data_to_fov_data(cell_data):
     return fov_data
 
 
-def get_fov_data(is_local=False):
+def get_fov_data():
+    # returns a datframe where every row is a FOV
+
     cell_data = get_cell_data()
 
-    return cell_data_to_fov_data(cell_data)
+    return _cell_data_to_fov_data(cell_data)
 
 
-def row2im(row):
-    # load all channels of all z-stacks and transpose to order: c, y, x, z
-    im = imread(row.SourceReadPath).squeeze()
-    im = np.transpose(im, [0, 2, 3, 1])
-    keep_channels = []
-    for c in row.index:
-        if 'Channel' in c:
-            keep_channels.append(row[c])
+def get_data(data_subset=False):
 
-    return im[keep_channels, :, :, :]
+    cell_data = get_cell_data()
+
+    if data_subset:
+        raise NotImplementedError
+
+    fov_data = _cell_data_to_fov_data(cell_data)
+
+    return cell_data, fov_data
 
 
 def trim_data_by_cellline(df, cell_line_ids):
