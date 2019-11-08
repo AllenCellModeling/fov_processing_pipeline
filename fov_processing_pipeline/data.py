@@ -176,12 +176,12 @@ def get_fov_data():
     return _cell_data_to_fov_data(cell_data)
 
 
-def get_data(data_subset=False):
+def get_data(trim_data=False):
 
     cell_data = get_cell_data()
 
-    if data_subset:
-        raise NotImplementedError
+    if trim_data:
+        cell_data = trim_data(cell_data, cell_line_ids=[10, 14, 25, 57, 75], n_fovs=100)
 
     fov_data = _cell_data_to_fov_data(cell_data)
 
@@ -193,8 +193,8 @@ def trim_data_by_cellline(df, cell_line_ids):
     ############################################
     # Return dataset with only rows having cell line ids in the given list
     ############################################
-    ids = ['AICS-'+str(id) for id in cell_line_ids]
-    return df[df['CellLine'].isin(ids)]
+    ids = ["AICS-" + str(id) for id in cell_line_ids]
+    return df[df["CellLine"].isin(ids)]
 
 
 def trim_data_by_cellline_fov_count(df, n_fovs):
@@ -204,19 +204,25 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
     ############################################
 
     keep_fov_ids = []
-    for id in pd.unique(df['CellLine']):
-        df_struct = df[df['CellLine'] == id]
+    for id in pd.unique(df["CellLine"]):
+        df_struct = df[df["CellLine"] == id]
 
         # make sure the desired number of fovs isn't greater than the number of available fovs
-        if n_fovs <= pd.unique(df_struct['FOVId']).shape[0]:
-            keep_fov_ids.extend(list(np.sort(pd.unique(df_struct['FOVId_rng']))[:n_fovs],))
+        if n_fovs <= pd.unique(df_struct["FOVId"]).shape[0]:
+            keep_fov_ids.extend(
+                list(np.sort(pd.unique(df_struct["FOVId_rng"]))[:n_fovs],)
+            )
 
         else:
-            warnings.warn('Desired number FOVs is greater than original number FOVS for '+id+'.')
-            warnings.warn('Keeping all FOVs for this cell line.')
-            keep_fov_ids.extend(pd.unqiue(list(df_struct['FOVId_rng'])))
+            warnings.warn(
+                "Desired number FOVs is greater than original number FOVS for "
+                + id
+                + "."
+            )
+            warnings.warn("Keeping all FOVs for this cell line.")
+            keep_fov_ids.extend(pd.unqiue(list(df_struct["FOVId_rng"])))
 
-    return df[df['FOVId_rng'].isin(keep_fov_ids)]
+    return df[df["FOVId_rng"].isin(keep_fov_ids)]
 
 
 def trim_data(df, cell_line_ids=[10, 14, 25, 57, 75], n_fovs=100):

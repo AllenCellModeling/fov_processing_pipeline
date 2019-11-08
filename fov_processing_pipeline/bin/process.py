@@ -8,11 +8,8 @@ users' virtualenv when the parent module is installed using pip.
 
 import argparse
 import logging
-import pickle
-import os
-import pandas as pd
 
-from fov_processing_pipeline import data, wrappers, utils, reports
+from fov_processing_pipeline import wrappers, utils, reports
 
 
 ###############################################################################
@@ -44,7 +41,7 @@ def main():
         help="Save directory for results",
     )
     p.add_argument(
-        "--data_subset",
+        "--trim_data",
         type=utils.str2bool,
         default=True,
         help="Use cleaned data subset",
@@ -56,7 +53,9 @@ def main():
     p = p.parse_args()
 
     # load  dataset
-    cell_data, fov_data = wrappers.save_load_data(p.save_dir)
+    cell_data, fov_data = wrappers.save_load_data(
+        p.save_dir, trim_data=p.trim_data, overwrite=p.overwrite
+    )
 
     #  make a summary table and save it
     reports.cell_data_to_summary_table(cell_data).to_csv(
