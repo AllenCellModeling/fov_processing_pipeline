@@ -5,13 +5,11 @@ def z_intensity_stats(im, c):
     # For a given channel and image, calculate stats for the intensity as a function of z slice:
     #   - Mean intensity
     #   - Standard deviation of intensity
-    #   - Entropy of intensity
     ############################################
     nz = im.shape[3]
 
     meanc = np.empty(nz)
     stdc = np.empty(nz)
-    entropyc = np.empty(nz)
 
     for z in range(im.shape[3]):
         imc_vals = im[c, :, :, z].flatten()
