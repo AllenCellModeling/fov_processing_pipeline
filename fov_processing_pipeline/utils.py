@@ -19,7 +19,9 @@ def str2bool(v):
 
 
 def im2proj(im):
-    # im is a c by y by x by z image
+    # im is a CYXZ numpy array
+    #
+    # returns a max intensity project image
 
     if len(im.shape) == 4:
         im_xy = np.max(im, 3)

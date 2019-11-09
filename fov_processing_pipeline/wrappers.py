@@ -29,6 +29,12 @@ def im2stats():
 
 
 def save_load_data(save_dir, trim_data=False, overwrite=False):
+    # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
+    #
+    # save_dir - directory in which data is saved
+    # trim_data - use a canned data subset
+    # overwrite - overwrite local data
+
     cell_data_path = "{}/cell_data.csv".format(save_dir)
     fov_data_path = "{}/cell_data.csv".format(save_dir)
 
@@ -46,6 +52,13 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
 
 
 def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
+    # Performs atomic operations on a data row that corresponds to a single FOV
+    #
+    # fov_row - pandas dataframe row (from data.get_data() frunction)
+    # stats_path - save path for image statistics
+    # proj_path - save path for projection image
+    # overwrite - overwrite local data
+
     if os.path.exists(proj_path) and ~overwrite:
         return
 
