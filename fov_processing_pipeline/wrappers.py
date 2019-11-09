@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import pickle
 import numpy as np
+from fov_processing_pipeline import stats
 
 from . import data, utils
 
@@ -22,9 +23,30 @@ def row2im(df_row):
     return im[keep_channels, :, :, :]
 
 
-def im2stats():
-    # takes a FOV and returns some basic statistics
-    raise NotImplementedError
+
+def im2stats(im):
+    ############################################
+    # For a given image, calculate some basic statistcs and return as dictionary
+    # Inputs:
+    #   - im: CYXZ image, numpy array
+    # Returns:
+    #   - results: dictionary of all calculated statics for the image
+    ############################################
+    nz = im.shape[3]
+
+    # create dictionary to fill
+    results = dict()
+
+    # get intensity stats as a function of z slices for all channels
+    for c in range(im.shape[0]):
+        results.update(stats.z_intensity_stats(im, c))
+        results.update(stats.intensity_percentiles_by_channel(im,c))
+
+    # get structure to cell and dna cross correlations
+    # stats.update(cross_correlations(im))
+    
+    return results
+
 
 
 def save_load_data(save_dir, data_subset=False, overwrite=False):
