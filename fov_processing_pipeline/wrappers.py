@@ -6,6 +6,7 @@ import numpy as np
 from fov_processing_pipeline import stats
 
 from . import data, utils
+from aicsimageio import writers
 
 
 def row2im(df_row):
@@ -49,12 +50,18 @@ def im2stats(im):
 
 
 
-def save_load_data(save_dir, data_subset=False, overwrite=False):
+def save_load_data(save_dir, trim_data=False, overwrite=False):
+    # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
+    #
+    # save_dir - directory in which data is saved
+    # trim_data - use a canned data subset
+    # overwrite - overwrite local data
+
     cell_data_path = "{}/cell_data.csv".format(save_dir)
     fov_data_path = "{}/cell_data.csv".format(save_dir)
 
     if not os.path.exists(cell_data_path) or overwrite:
-        cell_data, fov_data = data.get_data(data_subset=data_subset)
+        cell_data, fov_data = data.get_data(trim_data=trim_data)
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -67,16 +74,25 @@ def save_load_data(save_dir, data_subset=False, overwrite=False):
 
 
 def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
+    # Performs atomic operations on a data row that corresponds to a single FOV
+    #
+    # fov_row - pandas dataframe row (from data.get_data() frunction)
+    # stats_path - save path for image statistics
+    # proj_path - save path for projection image
+    # overwrite - overwrite local data
+
     if os.path.exists(proj_path) and ~overwrite:
         return
 
-    im, channel_names = row2im(fov_row)
+    im = row2im(fov_row)
     stats = im2stats(im)
 
     with open("stats_path", "wb") as f:
         pickle.dump(stats, f)
 
     im_proj = utils.im2proj(im)
-    imwrite(im_proj, proj_path)
+
+    with writers.PngWriter(proj_path) as writer:
+        writer.save(im_proj)
 
     return

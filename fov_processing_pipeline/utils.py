@@ -19,33 +19,37 @@ def str2bool(v):
 
 
 def im2proj(im):
-    # im is a c by y by x by z image
+    # im is a CYXZ numpy array
+    #
+    # returns a max intensity project image
 
     if len(im.shape) == 4:
-        im_xy = np.max(im, 3)[0]
-        im_xz = np.max(im, 1)[0].permute(0, 2, 1).flip(1)
-        im_yz = np.max(im, 2)[0]
+        im_xy = np.max(im, 3)
+        im_xz = np.max(im, 1).transpose(0, 2, 1)[:, ::-1]
+        im_yz = np.max(im, 2)
 
-        corner = np.zeros([im.shape[0], im.shape[3], im.shape[3]]).type_as(im)
+        corner = np.zeros([im.shape[0], im.shape[3], im.shape[3]])
 
-        top = np.cat([im_yz, im_xy], 2)
-        bottom = np.cat([corner, im_xz], 2)
+        top = np.concatenate([im_yz, im_xy], 2)
 
-        im = np.cat([top, bottom], 1)
+        bottom = np.concatenate([corner, im_xz], 2)
 
-    im = im.cpu().detach().numpy().transpose([1, 2, 0])
+        im = np.concatenate([top, bottom], 1)
+
+    im = im.transpose([1, 2, 0])
 
     for i in range(im.shape[2]):
         im[:, :, i] = im[:, :, i] / (np.max(im[:, :, i]))
 
-    color_transform = np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]])
+    color_transform = np.array([[1, 1, 0, 1], [0, 1, 1, 1], [1, 0, 1, 1]])
 
-    im_shape = im.shape
+    im_shape = list(im.shape)
 
     im_reshape = im.reshape([np.prod(im_shape[0:2]), im_shape[2]]).T
 
     im_recolored = np.matmul(color_transform, im_reshape).T
 
+    im_shape[2] = 3
     im = im_recolored.reshape(im_shape)
     im = im / np.max(im)
 

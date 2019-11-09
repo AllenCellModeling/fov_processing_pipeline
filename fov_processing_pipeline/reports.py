@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 def cell_data_to_summary_table(cell_data):
