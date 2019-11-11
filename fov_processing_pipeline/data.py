@@ -184,20 +184,20 @@ def get_data(use_trim_data=False):
     cell_data = get_cell_data()
 
     if use_trim_data:
-        cell_data = trim_data(cell_data, cell_line_ids=[10, 14, 25, 57, 75], n_fovs=10)
+        cell_data = trim_data(cell_data, n_fovs=10)
 
     fov_data = _cell_data_to_fov_data(cell_data)
 
     return cell_data, fov_data
 
 
-def trim_data_by_cellline(df, cell_line_ids):
+# def trim_data_by_cellline(df, cell_line_ids):
 
-    ############################################
-    # Return dataset with only rows having cell line ids in the given list
-    ############################################
-    ids = ["AICS-" + str(id) for id in cell_line_ids]
-    return df[df["CellLine"].isin(ids)]
+#     ############################################
+#     # Return dataset with only rows having cell line ids in the given list
+#     ############################################
+#     ids = ["AICS-" + str(id) for id in cell_line_ids]
+#     return df[df["CellLine"].isin(ids)]
 
 
 def trim_data_by_cellline_fov_count(df, n_fovs):
@@ -228,13 +228,27 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
     return df[df["FOVId_rng"].isin(keep_fov_ids)]
 
 
-def trim_data(df, cell_line_ids=[10, 14, 25, 57, 75], n_fovs=100):
+def trim_data(df, protein_list=None, n_fovs=100):
     ############################################
     # Trim dataset to contain only the given cell lines, with only the set number of FOVs or less
     # preset cell line IDs are: ER, Fibrillarin (Nucleolus), Golgi, Nucleophosmin (Nucleolus), Alpha Actinin
     # listing of cell lines by ID can be found at: https://www.allencell.org/cell-catalog.html
     ############################################
 
-    cell_line_trim = trim_data_by_cellline(df, cell_line_ids)
+    if protein_list is None:
+        protein_list = [
+            "Sec61 beta",  # er
+            "Fibrillarin",  # nucleolus, DFC
+            "Nucleophosmin",  # nucleolus, GC
+            "Sialyltransferase 1",  # golgi,
+            "Alpha-actinin-1",  # alpha actinin
+            "Non-muscle myosin heavy chain IIB",  # actomyosin bundles
+            "Lamin B1",  # nuclear lamin
+            "Alpha-tubulin",
+        ]
+
+    cell_line_trim = df[df["ProteinDisplayName"].isin(protein_list)]
+
+    # cell_line_trim = trim_data_by_cellline(df, cell_line_ids)
     fov_trim = trim_data_by_cellline_fov_count(cell_line_trim, n_fovs)
     return fov_trim
