@@ -49,6 +49,37 @@ def im2stats(im):
     return results
 
 
+def data2stats(df, save_dir, overwrite=False, fov_flag = False):
+    ############################################
+    # For a given cell or fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
+    # Inputs:
+    #   - df: dataframe of cell data including CYXZ images
+    #   - save_dir: directory to save stats dataframe
+    #   - overwrite: flag to overwrite if already exists
+    #   - fov_flag: true if FOV or false is cell dataframe is input, used for setting Id's
+    # Returns:
+    #   - results: dataframe with image stats for all cell or all fovs in dataframe
+    ############################################
+
+    if not fov_flag:
+        stats_path = "{}/cell_stats.csv".format(save_dir)
+        id = 'CellId'
+    else:
+        stats_path = "{}/fov_stats.csv".format(save_dir)
+        id = 'FOVId'
+
+    if not os.path.exists(stats_path) or overwrite:
+        stats_df = pd.DataFrame([im2stats(row2im(df.iloc[i])) for i in range(df.shape[0])])
+        stats_df[id] = df[id]
+
+        stats_df.to_csv(stats_path)
+
+    else:
+        stats_df = pd.read_csv(stats_path)
+
+    return stats_df
+
+
 
 def save_load_data(save_dir, trim_data=False, overwrite=False):
     # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
@@ -58,10 +89,10 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
     # overwrite - overwrite local data
 
     cell_data_path = "{}/cell_data.csv".format(save_dir)
-    fov_data_path = "{}/cell_data.csv".format(save_dir)
+    fov_data_path = "{}/fov_data.csv".format(save_dir)
 
     if not os.path.exists(cell_data_path) or overwrite:
-        cell_data, fov_data = data.get_data(trim_data=trim_data)
+        cell_data, fov_data = data.get_data(trim_data_flag=trim_data)
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
