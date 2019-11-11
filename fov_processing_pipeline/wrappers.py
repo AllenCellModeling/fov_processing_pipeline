@@ -1,12 +1,14 @@
-from aicsimageio import imread
+from aicsimageio import imread, writers
 import os
 import pandas as pd
 import pickle
 import numpy as np
-from fov_processing_pipeline import stats
-
 from . import data, utils
-from aicsimageio import writers
+
+import warnings
+
+from fov_processing_pipeline import stats
+from fov_processing_pipeline import plots
 
 
 def row2im(df_row):
@@ -22,7 +24,6 @@ def row2im(df_row):
             keep_channels.append(df_row[c])
 
     return im[keep_channels, :, :, :]
-
 
 
 def im2stats(im):
@@ -41,13 +42,12 @@ def im2stats(im):
     # get intensity stats as a function of z slices for all channels
     for c in range(im.shape[0]):
         results.update(stats.z_intensity_stats(im, c))
-        results.update(stats.intensity_percentiles_by_channel(im,c))
+        results.update(stats.intensity_percentiles_by_channel(im, c))
 
     # get structure to cell and dna cross correlations
     # stats.update(cross_correlations(im))
-    
-    return results
 
+    return results
 
 
 def save_load_data(save_dir, trim_data=False, overwrite=False):
@@ -58,10 +58,10 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
     # overwrite - overwrite local data
 
     cell_data_path = "{}/cell_data.csv".format(save_dir)
-    fov_data_path = "{}/cell_data.csv".format(save_dir)
+    fov_data_path = "{}/fov_data.csv".format(save_dir)
 
     if not os.path.exists(cell_data_path) or overwrite:
-        cell_data, fov_data = data.get_data(trim_data=trim_data)
+        cell_data, fov_data = data.get_data(use_trim_data=trim_data)
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -87,12 +87,24 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     im = row2im(fov_row)
     stats = im2stats(im)
 
-    with open("stats_path", "wb") as f:
+    with open(stats_path, "wb") as f:
         pickle.dump(stats, f)
 
-    im_proj = utils.im2proj(im)
+    im_proj = utils.rowim2proj(im)
 
     with writers.PngWriter(proj_path) as writer:
         writer.save(im_proj)
 
     return
+
+
+def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
+
+    warnings.warn("Overwrite checking currently not implemented.")
+
+    if not os.path.exists(diagnostics_dir):
+        os.makedirs(diagnostics_dir)
+
+    plots.im2bigim(
+        proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, diagnostics_dir
+    )
