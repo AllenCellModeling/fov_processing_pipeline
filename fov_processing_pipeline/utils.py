@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.random import Generator, PCG64
 import argparse
+import matplotlib.pyplot as plt
 
 
 def int2rand(id):
@@ -18,10 +19,23 @@ def str2bool(v):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def im2proj(im):
+def im2proj(im, color_transform=None):
     # im is a CYXZ numpy array
     #
-    # returns a max intensity project image
+    # returns a CYX max intensity project image
+
+    if color_transform is None:
+        n_channels = im.shape[0]
+
+        if n_channels == 3:
+            # do magenta-yellow-cyan instead of RGB
+            color_transform = np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]]).T
+        elif n_channels == 1:
+            # do white
+            color_transform = np.array([[1, 1, 1]])
+        else:
+            # pick colors from HSV
+            color_transform = plt.get_cmap("jet")(np.linspace(0, 1, n_channels))[:, 0:3]
 
     if len(im.shape) == 4:
         im_xy = np.max(im, 3)
@@ -30,29 +44,39 @@ def im2proj(im):
 
         corner = np.zeros([im.shape[0], im.shape[3], im.shape[3]])
 
-        top = np.concatenate([im_yz, im_xy], 2)
+        top = np.concatenate([im_xy, im_yz], 2)
 
-        bottom = np.concatenate([corner, im_xz], 2)
+        bottom = np.concatenate([im_xz, corner], 2)
 
-        im = np.concatenate([top, bottom], 1)
+        im = np.concatenate([bottom, top], 1)
+
+    for i in range(im.shape[0]):
+        im[i] = im[i] / (np.max(im[i]))
 
     im = im.transpose([1, 2, 0])
-
-    for i in range(im.shape[2]):
-        im[:, :, i] = im[:, :, i] / (np.max(im[:, :, i]))
-
-    color_transform = np.array([[1, 1, 0, 1], [0, 1, 1, 1], [1, 0, 1, 1]])
-
     im_shape = list(im.shape)
 
     im_reshape = im.reshape([np.prod(im_shape[0:2]), im_shape[2]]).T
 
-    im_recolored = np.matmul(color_transform, im_reshape).T
+    im_recolored = np.matmul(color_transform.T, im_reshape).T
 
     im_shape[2] = 3
     im = im_recolored.reshape(im_shape)
+    im = im.transpose([2, 0, 1])
+
     im = im / np.max(im)
 
     im[im > 1] = 1
 
     return im
+
+
+def rowim2proj(im):
+    # im is a CYXZ image returned from wrappers.row2im
+    #
+    # returns a combined projection image
+
+    im_fluor = im2proj(im[0:3])
+    im_trans = im2proj(im[[3]], color_transform=np.array([[1, 1, 1]]))
+
+    return np.concatenate([im_fluor, im_trans], 1)
