@@ -13,17 +13,14 @@ from fov_processing_pipeline import plots
 
 def row2im(df_row):
     # take a dataframe row and returns an image in CZYX format with channels in order of
-    # Brightfield, DNA, Membrane, Structure, seg_dna, seg_membrane, seg_structure
+    # Brightfield, DNA, Membrane, Structure (and return order in a dictionary)
     #
     # load all channels of all z-stacks and transpose to order: c, y, x, z
     im = imread(df_row.SourceReadPath).squeeze()
     im = np.transpose(im, [0, 2, 3, 1])
-    keep_channels = []
-    for c in df_row.index:
-        if "Channel" in c:
-            keep_channels.append(df_row[c])
+    channel_order = [df_row['ChannelNumberBrightfield'], df_row['ChannelNumber405'], df_row['ChannelNumber638'], df_row['ChannelNumberStruct']]
 
-    return im[keep_channels, :, :, :]
+    return im[channel_order, :, :, :], dict({'Brightfield': 0, 'DNA':1, 'Cell':2, 'Struct':3})
 
 
 def im2stats(im):
