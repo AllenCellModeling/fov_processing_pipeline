@@ -6,6 +6,8 @@ import pytest
 
 import pandas as pd
 
+from .. import wrappers
+
 
 @pytest.fixture
 def resources_dir() -> Path:
@@ -30,3 +32,8 @@ def demo_fov_data(resources_dir):
 @pytest.fixture
 def demo_fov_row(demo_fov_data):
     return demo_fov_data.iloc[0]
+
+
+@pytest.fixture
+def row_image(demo_fov_row):
+    return wrappers.row2im(demo_fov_row)

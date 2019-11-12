@@ -8,8 +8,9 @@ users' virtualenv when the parent module is installed using pip.
 
 import argparse
 import logging
+import os
 
-from fov_processing_pipeline import wrappers, utils, reports
+from fov_processing_pipeline import wrappers, utils, reports, stats
 
 
 ###############################################################################
@@ -52,6 +53,9 @@ def main():
 
     p = p.parse_args()
 
+    if not os.path.exists(p.save_dir):
+        os.makedirs(p.save_dir)
+
     # load  dataset
     cell_data, fov_data = wrappers.save_load_data(
         p.save_dir, trim_data=p.trim_data, overwrite=p.overwrite
@@ -76,8 +80,15 @@ def main():
     ):
         wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
 
-    # consolidate stats?
+    df_stats = wrappers.load_stats(fov_data, stats_paths)
     # makes some plots?
+
+    wrappers.stats2plots(df_stats, save_dir="{}/stats_plots".format(p.save_dir))
+
+    # projection paths to diagnostics path
+    wrappers.im2diagnostics(
+        fov_data, proj_paths, diagnostics_dir="{}/diagnostics".format(p.save_dir)
+    )
 
 
 ###############################################################################

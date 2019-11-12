@@ -108,3 +108,4 @@ ENV/
 .editorconfig
 .vscode
 results/
+fov_processing_pipeline/tests/tmp
