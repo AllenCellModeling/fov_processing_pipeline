@@ -10,7 +10,7 @@ import argparse
 import logging
 import os
 
-from fov_processing_pipeline import wrappers, utils, reports
+from fov_processing_pipeline import wrappers, utils, reports, stats
 
 
 ###############################################################################
@@ -80,13 +80,15 @@ def main():
     ):
         wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
 
+    df_stats = wrappers.load_stats(fov_data, stats_paths)
+    # makes some plots?
+
+    wrappers.stats2plots(df_stats, save_dir="{}/stats_plots".format(p.save_dir))
+
     # projection paths to diagnostics path
     wrappers.im2diagnostics(
-        fov_data, proj_paths, save_dir="{}/diagnostics".format(p.save_dir)
+        fov_data, proj_paths, diagnostics_dir="{}/diagnostics".format(p.save_dir)
     )
-
-    # consolidate stats?
-    # makes some plots?
 
 
 ###############################################################################

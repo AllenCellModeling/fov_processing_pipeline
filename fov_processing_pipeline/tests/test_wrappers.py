@@ -1,5 +1,6 @@
-from .. import wrappers
 from unittest import mock
+
+from .. import wrappers
 
 
 def test_row2im(demo_fov_row):
@@ -8,18 +9,12 @@ def test_row2im(demo_fov_row):
     assert len(im.shape) == 4
 
 
-def dummy_get_data(demo_cell_row, demo_fov_row):
-    return demo_cell_row, demo_fov_row
+def test_save_load_data(demo_cell_data, demo_fov_data, tmpdir, dummy_get_data):
+    # with mock.patch(
+    #     "fov_processing_pipeline.data.get_data", side_effect=dummy_get_data
+    # ):
 
+    with mock.patch("fov_processing_pipeline.data.get_data") as mocked_get_data:
+        mocked_get_data.return_value = (demo_cell_data, demo_fov_data)
+        cell_data, fov_data = wrappers.save_load_data(tmpdir, overwrite=True)
 
-def dummy_get_data2(demo_cell_row, demo_fov_row):
-    return demo_cell_row, demo_fov_row
-
-
-def test_save_load_data(demo_cell_row, demo_fov_row, tmp_dir):
-    with mock.patch("data.get_data", side_effect=dummy_get_data):
-        cell_data, fov_data = wrappers.save_load_data(tmp_dir, overwrite=True)
-
-
-#     import pdb
-#     pdb.set_trace()

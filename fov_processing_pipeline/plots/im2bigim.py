@@ -25,7 +25,7 @@ def im2bigim(impaths, im_ids, labels, save_parent_dir, nwide=5, ndeep=50, verbos
 
         label_inds = labels == ulabel
 
-        proj_paths = impaths[label_inds]
+        proj_paths = np.array(impaths)[label_inds]
         inds = im_ids[label_inds]
 
         im_list = list()

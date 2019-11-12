@@ -50,6 +50,73 @@ def im2stats(im):
     return results
 
 
+def data2stats(df, save_dir, overwrite=False, fov_flag=False):
+    ############################################
+    # For a given cell or fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
+    # Inputs:
+    #   - df: dataframe of cell data including CYXZ images
+    #   - save_dir: directory to save stats dataframe
+    #   - overwrite: flag to overwrite if already exists
+    #   - fov_flag: true if FOV or false is cell dataframe is input, used for setting Id's
+    # Returns:
+    #   - results: dataframe with image stats for all cell or all fovs in dataframe
+    ############################################
+
+    if not fov_flag:
+        stats_path = "{}/cell_stats.csv".format(save_dir)
+        id = "CellId"
+    else:
+        stats_path = "{}/fov_stats.csv".format(save_dir)
+        id = "FOVId"
+
+    if not os.path.exists(stats_path) or overwrite:
+        stats_df = pd.DataFrame(
+            [im2stats(row2im(df.iloc[i])) for i in range(df.shape[0])]
+        )
+        stats_df[id] = df[id]
+
+        stats_df.to_csv(stats_path)
+
+    else:
+        stats_df = pd.read_csv(stats_path)
+
+    return stats_df
+
+
+def load_stats(df, stats_paths):
+    # consolidate stats?
+    stats_list = list()
+    for i, stats_path in enumerate(stats_paths):
+        if os.path.exists(stats_path):
+            with open(stats_path, "rb") as f:
+                stats = pickle.load(f)
+
+            stats["FOVId"] = df.FOVId[i]
+            stats["ProteinDisplayName"] = df.ProteinDisplayName[i]
+            stats_list.append(stats)
+
+    df_stats = pd.DataFrame.from_dict(stats_list)
+
+    return df_stats
+
+
+def stats2plots(df_stats, save_dir):
+    # general stats to plots function
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    u_proteins = np.unique(df_stats.ProteinDisplayName)
+
+    for u_protein in u_proteins:
+        df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
+
+        stats.plot_im_percentiles(
+            df_stats_tmp,
+            save_path="{}/fov_stats_{}.png".format(save_dir, u_protein),
+            title=u_protein,
+        )
+
+
 def save_load_data(save_dir, trim_data=False, overwrite=False):
     # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
     #
@@ -61,6 +128,7 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
     fov_data_path = "{}/fov_data.csv".format(save_dir)
 
     if not os.path.exists(cell_data_path) or overwrite:
+
         cell_data, fov_data = data.get_data(use_trim_data=trim_data)
 
         cell_data.to_csv(cell_data_path)

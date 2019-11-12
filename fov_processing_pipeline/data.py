@@ -177,6 +177,7 @@ def get_fov_data():
 
 
 def get_data(use_trim_data=False):
+
     # Returns dataframe containing image paths and metadata for pipeline4
     #
     # trim_data - use a canned data subset
@@ -229,6 +230,7 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
 
 
 def trim_data(df, protein_list=None, n_fovs=100):
+
     ############################################
     # Trim dataset to contain only the given cell lines, with only the set number of FOVs or less
     # preset cell line IDs are: ER, Fibrillarin (Nucleolus), Golgi, Nucleophosmin (Nucleolus), Alpha Actinin

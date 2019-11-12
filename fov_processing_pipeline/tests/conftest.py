@@ -15,11 +15,6 @@ def resources_dir() -> Path:
 
 
 @pytest.fixture
-def tmp_dir() -> Path:
-    return Path(__file__).parent / "tmp"
-
-
-@pytest.fixture
 def demo_cell_data(resources_dir):
     return pd.read_csv("{}/cell_data.csv".format(resources_dir))
 
