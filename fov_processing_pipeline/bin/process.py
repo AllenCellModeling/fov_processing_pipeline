@@ -68,21 +68,24 @@ def main():
 
     # make the save paths for that stats files and the projected image files
     stats_paths = [
-        "{}/stats_{}.pkl".format(p.save_dir, row.FOVId)
+        "{}/plate_{}/stats_{}.pkl".format(p.save_dir, row.PlateId, row.FOVId)
         for i, row in fov_data.iterrows()
     ]
     proj_paths = [
-        "{}/proj_{}.png".format(p.save_dir, row.FOVId) for i, row in fov_data.iterrows()
+        "{}/plate_{}/proj_{}.png".format(p.save_dir, row.PlateId, row.FOVId)
+        for i, row in fov_data.iterrows()
     ]
 
+    # for every FOV, do the processing steps
     for (i, fov_row), stats_path, proj_path in zip(
         fov_data.iterrows(), stats_paths, proj_paths
     ):
         wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
 
+    # load stats from each FOV
     df_stats = wrappers.load_stats(fov_data, stats_paths)
-    # makes some plots?
 
+    # make plots from those stats
     wrappers.stats2plots(df_stats, save_dir="{}/stats_plots".format(p.save_dir))
 
     # projection paths to diagnostics path

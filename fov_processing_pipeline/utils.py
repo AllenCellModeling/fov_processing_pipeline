@@ -51,7 +51,8 @@ def im2proj(im, color_transform=None):
         im = np.concatenate([bottom, top], 1)
 
     for i in range(im.shape[0]):
-        im[i] = im[i] / (np.max(im[i]))
+        if np.sum(np.abs(im[i])) > 0:
+            im[i] = im[i] / (np.max(im[i]))
 
     im = im.transpose([1, 2, 0])
     im_shape = list(im.shape)

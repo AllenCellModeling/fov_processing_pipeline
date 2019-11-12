@@ -1,6 +1,7 @@
-from .. import utils
-from aicsimageio import writers
 import os
+from aicsimageio import writers
+import numpy as np
+from .. import utils
 
 
 def test_im2proj(tmpdir, row_image):
@@ -23,9 +24,46 @@ def test_im2proj(tmpdir, row_image):
     ) as writer:
         writer.save(im_proj)
 
-    # # CZYX image
-    # im = np.zeros([3,10, 10, 10])
-    # im[0] =
+    ####################
+    ### Test Recoloring
+    ####################
+
+    # Red image
+    # 3YX image
+    im = np.zeros([3, 10, 10])
+
+    im[0] = 1
+
+    # default output should be magenta
+    im_proj = utils.im2proj(im)
+
+    assert np.sum(im_proj[0]) > 0
+    assert np.sum(im_proj[1]) == 0
+    assert np.sum(im_proj[2]) > 0
+
+    # Green image
+    # 3YX image
+    im = np.zeros([3, 10, 10])
+    im[1] = 1
+
+    # default output should be yellow
+    im_proj = utils.im2proj(im)
+
+    assert np.sum(im_proj[0]) > 0
+    assert np.sum(im_proj[1]) > 0
+    assert np.sum(im_proj[2]) == 0
+
+    # Blue image
+    # 3YX image
+    im = np.zeros([3, 10, 10])
+    im[2] = 1
+
+    # default output should be cyan
+    im_proj = utils.im2proj(im)
+
+    assert np.sum(im_proj[0]) == 0
+    assert np.sum(im_proj[1]) > 0
+    assert np.sum(im_proj[2]) > 0
 
 
 def test_rowim2proj(tmpdir, row_image):
