@@ -19,6 +19,9 @@ def cell_data_to_summary_table(cell_data):
         cell_line_summary_table[i]["ProteinDisplayName"] = np.unique(
             data_cell_line.ProteinDisplayName
         )
+        cell_line_summary_table[i]["Structure Name"] = np.unique(
+            data_cell_line.StructureShortName
+        )
 
         cell_line_summary_table[i]["#cells"] = len(data_cell_line)
         cell_line_summary_table[i]["#fovs"] = len(np.unique(data_cell_line.FOVId))

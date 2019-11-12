@@ -8,7 +8,7 @@ from . import data, utils
 import warnings
 
 from fov_processing_pipeline import stats
-from fov_processing_pipeline import plots
+from fov_processing_pipeline import reports
 
 
 def row2im(df_row):
@@ -152,6 +152,14 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     if os.path.exists(proj_path) and ~overwrite:
         return
 
+    proj_dir = os.path.dirname(proj_path)
+    if not os.path.exists(proj_dir):
+        os.makedirs(proj_dir)
+
+    stats_dir = os.path.dirname(stats_path)
+    if not os.path.exists(stats_dir):
+        os.makedirs(stats_dir)
+
     im = row2im(fov_row)
     stats = im2stats(im)
 
@@ -173,6 +181,6 @@ def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
     if not os.path.exists(diagnostics_dir):
         os.makedirs(diagnostics_dir)
 
-    plots.im2bigim(
+    reports.im2bigim(
         proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, diagnostics_dir
     )

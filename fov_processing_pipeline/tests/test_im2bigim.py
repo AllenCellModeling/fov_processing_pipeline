@@ -3,10 +3,10 @@ from aicsimageio import writers
 import os
 import numpy as np
 
-from fov_processing_pipeline.plots import im2bigim
+from fov_processing_pipeline.reports import im2bigim
 
 
-def test_rowim2proj(tmpdir, demo_fov_data, row_image):
+def test_im2bigim(tmpdir, demo_fov_data, row_image):
     im = row_image
 
     im_proj = utils.rowim2proj(im)
