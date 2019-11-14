@@ -37,3 +37,20 @@ def cell_data_to_summary_table(cell_data):
     cell_line_summary_table = pd.DataFrame.from_dict(cell_line_summary_table).T
 
     return cell_line_summary_table
+
+
+def plot_intensity_profiles(z_intensity_dict_list: list, save_path: str, channel_to_align_by=None):
+    """
+    This is an example object. Use this example for ideas on how to write doc strings, use logging, construct
+    objects. This is not an exhaustive example but a decent start.
+
+    Parameters
+    ----------
+    im: np.array
+        CYXZ image
+    
+    Returns
+    -------
+    stats_dict: dict
+        Dictionary containing z_profile information for each channel
+    """

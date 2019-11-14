@@ -50,6 +50,9 @@ def main():
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
     )
+    p.add_argument(
+        "--use_current_results", type=utils.str2bool, default=False, help="dont do any processing. just make figures."
+    )
 
     p = p.parse_args()
 
@@ -76,11 +79,12 @@ def main():
         for i, row in fov_data.iterrows()
     ]
 
-    # for every FOV, do the processing steps
-    for (i, fov_row), stats_path, proj_path in zip(
-        fov_data.iterrows(), stats_paths, proj_paths
-    ):
-        wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
+    if not p.use_current_results:
+        # for every FOV, do the processing steps
+        for (i, fov_row), stats_path, proj_path in zip(
+            fov_data.iterrows(), stats_paths, proj_paths
+        ):
+            wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
 
     # load stats from each FOV
     df_stats = wrappers.load_stats(fov_data, stats_paths)

@@ -27,8 +27,11 @@ def z_intensity_stats(im, c):
 
     clabel = "Ch" + str(c) + "_"
     zlabel = "_by_z"
-    return {clabel + "mean" + zlabel: meanc, clabel + "std" + zlabel: stdc}
 
+    stats_out = {clabel + "mean" + zlabel: meanc, clabel + "std" + zlabel: stdc}
+
+    return pd.DataFrame.from_dict([stats_out])
+        
 
 def intensity_percentiles_by_channel(im, c, percentile_list=[5, 25, 50, 75, 95]):
     ############################################
@@ -43,12 +46,15 @@ def intensity_percentiles_by_channel(im, c, percentile_list=[5, 25, 50, 75, 95])
 
     imvals = im[c, :, :, :].flatten()
     results = [np.percentile(imvals, p) for p in percentile_list]
-    return dict(
+
+    stats_out = dict(
         {
-            "Intensity_Percentiles": percentile_list,
-            "Ch" + str(c) + "_Percentile_Intensities": results,
+            "Intensity_Percentiles": np.array(percentile_list),
+            "Ch" + str(c) + "_Percentile_Intensities": np.array(results),
         }
     )
+
+    return pd.DataFrame.from_dict([stats_out])
 
 
 def plot_im_percentiles(df, fov_flag=True, save_path=None, save_flag=False, title=None):
