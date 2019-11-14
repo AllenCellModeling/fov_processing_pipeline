@@ -13,19 +13,19 @@ import fov_processing_pipeline.stats.z_intensity_profile
 from fov_processing_pipeline import reports
 
 
-def row2im(df_row):
-    # take a dataframe row and returns an image in CZYX format with channels in order of
-    # Brightfield, DNA, Membrane, Structure, seg_dna, seg_membrane, seg_structure
+def row2im(df_row, ch_order=['BF', 'DNA', 'Cell', 'Struct']):
+    # take a dataframe row and returns an image in CZYX format with channels in desired order
+    # Default order is: Brightfield, DNA, Membrane, Structure
     #
     # load all channels of all z-stacks and transpose to order: c, y, x, z
     im = imread(df_row.SourceReadPath).squeeze()
     im = np.transpose(im, [0, 2, 3, 1])
-    keep_channels = []
-    for c in df_row.index:
-        if "Channel" in c:
-            keep_channels.append(df_row[c])
 
-    return im[keep_channels, :, :, :]
+    ch2ind = dict({'BF':df_row['ChannelNumberBrightfield'], 'DNA': df_row['ChannelNumber405'], 
+                    'Cell':df_row['ChannelNumber638'], 'Struct':df_row['ChannelNumberStruct']})
+    ch_reorg = [ch2ind[ch] for ch in ch_order]
+
+    return im[ch_reorg, :, :, :], ch_order
 
 
 def im2stats(im):

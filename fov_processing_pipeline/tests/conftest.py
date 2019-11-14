@@ -36,4 +36,4 @@ def demo_fov_row(demo_fov_data):
 
 @pytest.fixture
 def demo_row_image(demo_fov_row):
-    return wrappers.row2im(demo_fov_row)
+    return wrappers.row2im(demo_fov_row)[0]
