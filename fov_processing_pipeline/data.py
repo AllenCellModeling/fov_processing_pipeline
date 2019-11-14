@@ -192,15 +192,6 @@ def get_data(use_trim_data=False):
     return cell_data, fov_data
 
 
-# def trim_data_by_cellline(df, cell_line_ids):
-
-#     ############################################
-#     # Return dataset with only rows having cell line ids in the given list
-#     ############################################
-#     ids = ["AICS-" + str(id) for id in cell_line_ids]
-#     return df[df["CellLine"].isin(ids)]
-
-
 def trim_data_by_cellline_fov_count(df, n_fovs):
 
     ############################################
@@ -224,7 +215,7 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
                 + "."
             )
             warnings.warn("Keeping all FOVs for this cell line.")
-            keep_fov_ids.extend(pd.unqiue(list(df_struct["FOVId_rng"])))
+            keep_fov_ids.extend(pd.unique(df_struct["FOVId_rng"]))
 
     return df[df["FOVId_rng"].isin(keep_fov_ids)]
 
