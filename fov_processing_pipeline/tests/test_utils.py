@@ -4,8 +4,8 @@ import numpy as np
 from .. import utils
 
 
-def test_im2proj(tmpdir, row_image):
-    im = row_image
+def test_im2proj(tmpdir, demo_row_image):
+    im = demo_row_image
 
     im_proj = utils.im2proj(im)
 
@@ -66,8 +66,8 @@ def test_im2proj(tmpdir, row_image):
     assert np.sum(im_proj[2]) > 0
 
 
-def test_rowim2proj(tmpdir, row_image):
-    im = row_image
+def test_rowim2proj(tmpdir, demo_row_image):
+    im = demo_row_image
 
     im_proj = utils.rowim2proj(im)
 
