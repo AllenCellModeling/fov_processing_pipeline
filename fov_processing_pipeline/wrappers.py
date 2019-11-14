@@ -8,6 +8,8 @@ from . import data, utils
 import warnings
 
 from fov_processing_pipeline import stats
+import fov_processing_pipeline.stats.z_intensity_profile
+
 from fov_processing_pipeline import reports
 
 
@@ -34,15 +36,19 @@ def im2stats(im):
     # Returns:
     #   - results: dictionary of all calculated statics for the image
     ############################################
-    nz = im.shape[3]
 
     # create dictionary to fill
-    results = dict()
+    results = list()
 
     # get intensity stats as a function of z slices for all channels
     for c in range(im.shape[0]):
-        results.update(stats.z_intensity_stats(im, c))
-        results.update(stats.intensity_percentiles_by_channel(im, c))
+
+        results.append(stats.z_intensity_stats(im, c))
+        results.append(stats.intensity_percentiles_by_channel(im, c))
+
+    results.append(stats.z_intensity_profile.im2stats(im))
+
+    results = pd.concat(results, axis=1)
 
     # get structure to cell and dna cross correlations
     # stats.update(cross_correlations(im))
@@ -94,14 +100,24 @@ def load_stats(df, stats_paths):
             stats["FOVId"] = df.FOVId[i]
             stats["ProteinDisplayName"] = df.ProteinDisplayName[i]
             stats_list.append(stats)
+        else:
+            warnings.warn("{} is missing.".format(stats_path))
 
-    df_stats = pd.DataFrame.from_dict(stats_list)
+    df_stats = pd.concat(stats_list, axis = 0)
 
     return df_stats
 
 
-def stats2plots(df_stats, save_dir):
-    # general stats to plots function
+def stats2plots(df_stats: pd.DataFrame, save_dir: str):
+    """
+    general stats to plots function, saves results to save_dir
+
+    Parameters
+    ----------
+    df_stats: pd.DataFrame
+        Big dataframe of statistics determined by the combination of data2stats and load_stats
+    
+    """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -114,6 +130,12 @@ def stats2plots(df_stats, save_dir):
             df_stats_tmp,
             save_path="{}/fov_stats_{}.png".format(save_dir, u_protein),
             title=u_protein,
+        )
+
+        stats.z_intensity_profile.plot(
+            df_stats_tmp,
+            save_path="{}/fov_z_intensity_profile_{}.png".format(save_dir, u_protein),
+            center_on_channel="Ch1_z_intensity_profile"
         )
 
 
