@@ -182,7 +182,7 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     if not os.path.exists(stats_dir):
         os.makedirs(stats_dir)
 
-    im = row2im(fov_row)
+    im, ch = row2im(fov_row)
     stats = im2stats(im)
 
     with open(stats_path, "wb") as f:
