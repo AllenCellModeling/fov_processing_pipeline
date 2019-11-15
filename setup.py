@@ -35,20 +35,21 @@ dev_requirements = [
     "tox>=3.5.2",
     "twine>=1.13.0",
     "wheel>=0.33.1",
+    "lkaccess",
 ]
 
 interactive_requirements = [
     "altair",
     "jupyterlab",
     "matplotlib",
-    "ipykernel"
+    "ipykernel",
+    "lkaccess",
 ]
 
 requirements = [
     "pandas",
     "tifffile==0.15.1",
     "matplotlib",
-    "lkaccess",
     "jupyterlab",
     "matplotlib",
     "aicsimageio",
@@ -64,8 +65,8 @@ extra_requirements = {
         *test_requirements,
         *setup_requirements,
         *dev_requirements,
-        *interactive_requirements
-    ]
+        *interactive_requirements,
+    ],
 }
 
 setup(
@@ -81,9 +82,7 @@ setup(
     ],
     description="Pipeline tools for analyzing FOVs",
     entry_points={
-        "console_scripts": [
-            "fpp_process=fov_processing_pipeline.bin.process:main"
-        ],
+        "console_scripts": ["fpp_process=fov_processing_pipeline.bin.process:main"],
     },
     install_requires=requirements,
     license="Allen Institute Software License",

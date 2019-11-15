@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 import pandas as pd
 
 
@@ -31,7 +30,7 @@ def z_intensity_stats(im, c):
     stats_out = {clabel + "mean" + zlabel: meanc, clabel + "std" + zlabel: stdc}
 
     return pd.DataFrame.from_dict([stats_out])
-        
+
 
 def intensity_percentiles_by_channel(im, c, percentile_list=[5, 25, 50, 75, 95]):
     ############################################
