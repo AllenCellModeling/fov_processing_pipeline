@@ -44,7 +44,7 @@ def plot(
     center_on_channel=None,
 ):
     """
-    Plots results from im2stats
+    Plots results from im2stats by individual FOV and as a mean over FOV
 
     Parameters
     ----------
@@ -69,6 +69,7 @@ def plot(
     if normalize_intensity:
         y_label_suffix = " (normalized)"
 
+    df_pm = pd.DataFrame(columns=['z', 'intensity','ch'])
     plt.figure()
 
     label_flag = True
@@ -100,15 +101,43 @@ def plot(
             else:
                 label = None
 
+            df_tmp = pd.DataFrame({'z': x_pos, 'intensity':v, 'ch':column})
+            
+            df_pm = df_pm.append(df_tmp, ignore_index=True)
             plt.plot(x_pos, v, color=color, label=label)
 
-        label_flag = False
+        label_flag = False    
 
     plt.legend()
     plt.xlabel("z-position{}".format(x_label_suffix))
     plt.ylabel("intensity{}".format(y_label_suffix))
 
     plt.savefig(save_path)
+    plt.close()
+
+    # make plot of means for each channel
+    plt.figure()
+    for color, ch in zip(colors, range(len(columns))):
+        df_ch = df_pm[df_pm['ch'].str.contains(str(ch))]
+        z_vals = np.arange(min(df_ch['z']), max(df_ch['z'])+1)
+
+        # get mean and standard deviation by z index
+        means = []
+        stds = []
+        for z in z_vals:
+            means.append(np.mean(df_ch[df_ch['z']==z]['intensity']))
+            stds.append(np.std(df_ch[df_ch['z']==z]['intensity']))
+
+        # plot mean as a solid line and shade area +- standard deviation relative to mean
+        plt.plot(z_vals, means, color=color, label=df_ch['ch'].iloc[0])
+        y1 = [means[i]-stds[i] for i in range(len(means))]
+        y2 = [means[i]+stds[i] for i in range(len(means))]
+        plt.fill_between(z_vals, y1, y2, color=color, alpha=0.1)
+    plt.legend()
+    plt.xlabel("z-position{}".format(x_label_suffix))
+    plt.ylabel("intensity{}".format(y_label_suffix))
+    ext_ind = save_path.rfind(".")
+    plt.savefig(save_path[:ext_ind]+"_mean"+save_path[ext_ind:])
     plt.close()
 
     return
