@@ -39,7 +39,8 @@ def im2stats(im, channel_names=None) -> pd.DataFrame:
 
 def plot(
     df_stats: pd.DataFrame,
-    save_path: str,
+    fov_save_path: str,
+    mean_save_path: str,
     normalize_intensity=True,
     center_on_channel=None,
 ):
@@ -69,7 +70,8 @@ def plot(
     if normalize_intensity:
         y_label_suffix = " (normalized)"
 
-    df_pm = pd.DataFrame(columns=['z', 'intensity','ch'])
+    # create dataframe to store final z indices and intensities with a channel marker - this is for plotting means by channel later
+    df_means = pd.DataFrame(columns=['z', 'intensity','ch'])
     plt.figure()
 
     label_flag = True
@@ -103,7 +105,7 @@ def plot(
 
             df_tmp = pd.DataFrame({'z': x_pos, 'intensity':v, 'ch':column})
             
-            df_pm = df_pm.append(df_tmp, ignore_index=True)
+            df_means = df_means.append(df_tmp, ignore_index=True)
             plt.plot(x_pos, v, color=color, label=label)
 
         label_flag = False    
@@ -112,13 +114,13 @@ def plot(
     plt.xlabel("z-position{}".format(x_label_suffix))
     plt.ylabel("intensity{}".format(y_label_suffix))
 
-    plt.savefig(save_path)
+    plt.savefig(fov_save_path)
     plt.close()
 
     # make plot of means for each channel
     plt.figure()
     for color, ch in zip(colors, range(len(columns))):
-        df_ch = df_pm[df_pm['ch'].str.contains(str(ch))]
+        df_ch = df_means[df_means['ch'].str.contains(str(ch))]
         z_vals = np.arange(min(df_ch['z']), max(df_ch['z'])+1)
 
         # get mean and standard deviation by z index
@@ -136,8 +138,8 @@ def plot(
     plt.legend()
     plt.xlabel("z-position{}".format(x_label_suffix))
     plt.ylabel("intensity{}".format(y_label_suffix))
-    ext_ind = save_path.rfind(".")
-    plt.savefig(save_path[:ext_ind]+"_mean"+save_path[ext_ind:])
+
+    plt.savefig(mean_save_path)
     plt.close()
 
     return
