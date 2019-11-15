@@ -1,5 +1,3 @@
-import lkaccess
-import lkaccess.contexts
 import pandas as pd
 import numpy as np
 import warnings
@@ -10,6 +8,8 @@ from .utils import int2rand
 
 
 def get_cell_data():
+    import lkaccess
+    import lkaccess.contexts
 
     # returns a datframe where every row is a cell
 
