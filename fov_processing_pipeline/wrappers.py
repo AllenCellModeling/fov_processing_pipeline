@@ -134,8 +134,8 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
 
         stats.z_intensity_profile.plot(
             df_stats_tmp,
-            fov_save_path="{}/fov_z_intensity_profile_{}.png".format(save_dir, u_protein),
-            mean_save_path="{}/mean_z_intensity_profile_{}.png".format(save_dir, u_protein),
+            save_dir,
+            u_protein,
             center_on_channel="Ch1_z_intensity_profile"
         )
 
