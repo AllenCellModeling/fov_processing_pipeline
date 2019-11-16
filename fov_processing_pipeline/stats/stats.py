@@ -58,7 +58,8 @@ def intensity_percentiles_by_channel(im, c, percentile_list=[5, 25, 50, 75, 95])
 
 def plot_im_percentiles(df, fov_flag=True, save_path=None, save_flag=False, title=None):
     ############################################
-    # Given a df of stats for multiple cells, plot all intensity percentile data, assuming five percentiles used in analysis
+    # Given a df of stats for multiple cells, plot all intensity percentile data, assuming five percentiles used in
+    # analysis.
     # Inputs:
     #   - df: statistics dataframe, containing image stats from a cell data dataframe
     # Returns:
@@ -106,4 +107,3 @@ def plot_im_percentiles(df, fov_flag=True, save_path=None, save_flag=False, titl
         plt.savefig(save_path)
 
     return fig
-
