@@ -34,6 +34,6 @@ def test_z_intensity_profile(tmpdir, demo_row_image):
     # make sure the plotting tool is plotting at least something
     save_fig_path = "{}/fig.png".format(tmpdir)
 
-    z_intensity_profile.plot(fov_stats, save_fig_path)
+    z_intensity_profile.plot(fov_stats, tmpdir, 'test')
 
     assert os.path.exists(save_fig_path)

@@ -39,8 +39,8 @@ def im2stats(im, channel_names=None) -> pd.DataFrame:
 
 def plot(
     df_stats: pd.DataFrame,
-    fov_save_path: str,
-    mean_save_path: str,
+    save_dir: str,
+    suffix: str,
     normalize_intensity=True,
     center_on_channel=None,
 ):
@@ -52,6 +52,18 @@ def plot(
     df_stats: pd.DataFrame
         pandas dataframe from im2stats
     """
+    template_str = "{save_dir}/{prefix}{FEATURE_NAME}_{suffix}.png"
+    
+    template_dict = {"save_dir": save_dir,
+        "prefix": "prefix",
+        "FEATURE_NAME": FEATURE_NAME,
+        "suffix": suffix}
+
+    template_dict["prefix"] = "mean"
+    mean_path = template_str.format(**template_dict)
+
+    template_dict["prefix"] = "fov"
+    fov_path = template_str.format(**template_dict)
 
     # make sure we only use columns that are for this feature
     columns = [c for c in df_stats.columns if c.endswith(FEATURE_NAME)]
@@ -114,7 +126,7 @@ def plot(
     plt.xlabel("z-position{}".format(x_label_suffix))
     plt.ylabel("intensity{}".format(y_label_suffix))
 
-    plt.savefig(fov_save_path)
+    plt.savefig(fov_path)
     plt.close()
 
     # make plot of means for each channel
@@ -139,7 +151,7 @@ def plot(
     plt.xlabel("z-position{}".format(x_label_suffix))
     plt.ylabel("intensity{}".format(y_label_suffix))
 
-    plt.savefig(mean_save_path)
+    plt.savefig(mean_path)
     plt.close()
 
     return
