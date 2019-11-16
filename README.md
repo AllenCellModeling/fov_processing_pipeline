@@ -48,11 +48,7 @@ cd fov_processing_pipeline
 **Install**  
 
 ```
-pip install .
-```
-or install for development
-```
-pip install -e .[dev]
+pip install .[dev]
 ```
 
 ## If running locally (e.g. macOS)
