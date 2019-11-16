@@ -8,10 +8,11 @@ from .utils import int2rand
 
 
 def get_cell_data():
+    # returns a datframe where every row is a cell
+
+    # Move this to top-level imports if/when lkaccess becomes open source
     import lkaccess
     import lkaccess.contexts
-
-    # returns a datframe where every row is a cell
 
     use_staging = False
 
