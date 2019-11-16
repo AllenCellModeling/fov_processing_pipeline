@@ -1,7 +1,10 @@
 # FOV Processing Pipeline
 
-[![Build Status](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Build%20Master/badge.svg)](https://github.com/AllenCellModeling/fov_processing_pipeline/actions)
+
+<!--
 [![Documentation](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Documentation/badge.svg)](https://gregjohnso.github.io/fov_processing_pipeline)
+-->
+[![Build Status](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Build%20Master/badge.svg)](https://github.com/AllenCellModeling/fov_processing_pipeline/actions)
 [![Code Coverage](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline)
 
 Pipeline tools for high-throughput analysis of AICS Pipeline FOVs
