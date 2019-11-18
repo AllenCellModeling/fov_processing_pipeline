@@ -6,7 +6,7 @@ def check_input(im, channel_names=None, ndims=None):
     ----------
     im: np.array
         image with "ndims" dimensions
-    
+
     channel_names: list
         list of names corresponding to each channel, or None
 
