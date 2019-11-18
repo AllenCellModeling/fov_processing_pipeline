@@ -1,7 +1,6 @@
 from .. import data
 import numpy as np
 import pandas as pd
-import pytest
 
 
 def test_cell_data_to_fov_data(demo_cell_data):
@@ -60,7 +59,6 @@ def test_trim_data_by_cellline_fov(demo_fov_data):
     demo_multi_fov_data["ProteinDisplayName"] = protein_list*2
     demo_multi_fov_data["CellLine"] = demo_multi_fov_data["ProteinDisplayName"]
     demo_multi_fov_data["FOVId_rng"] = range(len(protein_list)*2)
-
 
     # check that trimming to a smaller number of fovs works
     trim_df = data.trim_data_by_cellline_fov_count(demo_multi_fov_data, 1)

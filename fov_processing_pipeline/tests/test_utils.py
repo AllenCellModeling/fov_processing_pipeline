@@ -25,7 +25,7 @@ def test_im2proj(tmpdir, demo_row_image):
         writer.save(im_proj)
 
     ####################
-    ### Test Recoloring
+    # Test Recoloring
     ####################
 
     # Red image
@@ -80,4 +80,3 @@ def test_rowim2proj(tmpdir, demo_row_image):
         "{}/tmp_rowim.png".format(tmpdir), overwrite_file=True
     ) as writer:
         writer.save(im_proj)
-

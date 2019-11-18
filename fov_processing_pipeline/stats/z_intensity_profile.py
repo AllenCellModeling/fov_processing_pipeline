@@ -17,7 +17,7 @@ def im2stats(im, channel_names=None) -> pd.DataFrame:
     ----------
     im: np.array
         CYXZ image
-    
+
     Returns
     -------
     df_stats: pd.DataFrame
@@ -94,6 +94,7 @@ def plot(
 
     # create dataframe to store final z indices and intensities with a channel marker - this is for plotting means by channel later
     df_means = pd.DataFrame(columns=["z", "intensity", "ch"])
+
     plt.figure()
 
     label_flag = True
@@ -148,6 +149,7 @@ def plot(
         means = []
         stds = []
         for z in z_vals:
+
             means.append(np.mean(df_ch[df_ch["z"] == z]["intensity"]))
             stds.append(np.std(df_ch[df_ch["z"] == z]["intensity"]))
 
