@@ -98,8 +98,8 @@ def load_stats(df, stats_paths):
             with open(stats_path, "rb") as f:
                 stats = pickle.load(f)
 
-            stats["FOVId"] = df.FOVId[i]
-            stats["ProteinDisplayName"] = df.ProteinDisplayName[i]
+            stats["FOVId"] = df["FOVId"].iloc[i]
+            stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
             stats_list.append(stats)
         else:
             warnings.warn("{} is missing.".format(stats_path))
