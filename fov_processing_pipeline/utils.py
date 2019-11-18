@@ -40,7 +40,7 @@ def im2proj(im, color_transform=None):
     if len(im.shape) == 4:
         im_xy = np.max(im, 3)
         im_xz = np.max(im, 1).transpose(0, 2, 1)
-        im_yz = np.max(im, 2)[:,:,::-1]
+        im_yz = np.max(im, 2)[:, :, ::-1]
 
         corner = np.zeros([im.shape[0], im.shape[3], im.shape[3]])
 

@@ -10,7 +10,7 @@ import argparse
 import logging
 import os
 
-from fov_processing_pipeline import wrappers, utils, reports, stats
+from fov_processing_pipeline import wrappers, utils, reports
 
 
 ###############################################################################

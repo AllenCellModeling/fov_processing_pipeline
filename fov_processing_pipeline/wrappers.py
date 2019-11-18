@@ -117,7 +117,7 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     ----------
     df_stats: pd.DataFrame
         Big dataframe of statistics determined by the combination of data2stats and load_stats
-    
+
     """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)

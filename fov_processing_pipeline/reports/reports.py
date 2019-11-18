@@ -48,7 +48,7 @@ def plot_intensity_profiles(z_intensity_dict_list: list, save_path: str, channel
     ----------
     im: np.array
         CYXZ image
-    
+
     Returns
     -------
     stats_dict: dict
