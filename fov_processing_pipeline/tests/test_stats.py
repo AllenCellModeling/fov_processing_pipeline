@@ -31,9 +31,4 @@ def test_z_intensity_profile(tmpdir, demo_row_image):
     with pytest.raises(ValueError):
         z_intensity_profile.im2stats(np.expand_dims(demo_row_image, 0))
 
-    # make sure the plotting tool is plotting at least something
-    save_fig_path = "{}/fig.png".format(tmpdir)
-
-    z_intensity_profile.plot(fov_stats, save_fig_path)
-
-    assert os.path.exists(save_fig_path)
+    z_intensity_profile.plot(fov_stats, tmpdir, "test")

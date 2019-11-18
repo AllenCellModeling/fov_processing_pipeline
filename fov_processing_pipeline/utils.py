@@ -39,8 +39,8 @@ def im2proj(im, color_transform=None):
 
     if len(im.shape) == 4:
         im_xy = np.max(im, 3)
-        im_xz = np.max(im, 1).transpose(0, 2, 1)[:, ::-1]
-        im_yz = np.max(im, 2)
+        im_xz = np.max(im, 1).transpose(0, 2, 1)
+        im_yz = np.max(im, 2)[:,:,::-1]
 
         corner = np.zeros([im.shape[0], im.shape[3], im.shape[3]])
 
@@ -72,12 +72,27 @@ def im2proj(im, color_transform=None):
     return im
 
 
-def rowim2proj(im):
+def rowim2proj(im, ch_order=None):
     # im is a CYXZ image returned from wrappers.row2im
     #
     # returns a combined projection image
 
-    im_fluor = im2proj(im[0:3])
-    im_trans = im2proj(im[[3]], color_transform=np.array([[1, 1, 1]]))
+    if ch_order is None:
+        assert im.shape[0] == 4
+        fluor_inds = np.arange(0, 3)
+        bf_inds = np.array([3])
+    else:
+        ch_order = np.array(ch_order)
+        bf_inds = np.where(ch_order == "BF")[0]
+        fluor_inds = np.array(
+            [
+                np.where(ch_order == "Cell")[0][0],
+                np.where(ch_order == "Struct")[0][0],
+                np.where(ch_order == "DNA")[0][0],
+            ]
+        )
+
+    im_fluor = im2proj(im[fluor_inds])
+    im_trans = im2proj(im[bf_inds], color_transform=np.array([[1, 1, 1]]))
 
     return np.concatenate([im_fluor, im_trans], 1)

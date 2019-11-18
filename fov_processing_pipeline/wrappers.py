@@ -1,19 +1,14 @@
-from aicsimageio import imread, writers
 import os
+import warnings
 import pandas as pd
 import pickle
 import numpy as np
-from . import data, utils
+from aicsimageio import imread, writers
 
-import warnings
-
-from fov_processing_pipeline import stats
-import fov_processing_pipeline.stats.z_intensity_profile
-
-from fov_processing_pipeline import reports
+from . import data, utils, stats, reports
 
 
-def row2im(df_row, ch_order=['BF', 'DNA', 'Cell', 'Struct']):
+def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
     # take a dataframe row and returns an image in CZYX format with channels in desired order
     # Default order is: Brightfield, DNA, Membrane, Structure
     #
@@ -21,8 +16,14 @@ def row2im(df_row, ch_order=['BF', 'DNA', 'Cell', 'Struct']):
     im = imread(df_row.SourceReadPath).squeeze()
     im = np.transpose(im, [0, 2, 3, 1])
 
-    ch2ind = dict({'BF':df_row['ChannelNumberBrightfield'], 'DNA': df_row['ChannelNumber405'], 
-                    'Cell':df_row['ChannelNumber638'], 'Struct':df_row['ChannelNumberStruct']})
+    ch2ind = dict(
+        {
+            "BF": df_row["ChannelNumberBrightfield"],
+            "DNA": df_row["ChannelNumber405"],
+            "Cell": df_row["ChannelNumber638"],
+            "Struct": df_row["ChannelNumberStruct"],
+        }
+    )
     ch_reorg = [ch2ind[ch] for ch in ch_order]
 
     return im[ch_reorg, :, :, :], ch_order
@@ -103,7 +104,7 @@ def load_stats(df, stats_paths):
         else:
             warnings.warn("{} is missing.".format(stats_path))
 
-    df_stats = pd.concat(stats_list, axis = 0)
+    df_stats = pd.concat(stats_list, axis=0)
 
     return df_stats
 
@@ -134,8 +135,8 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
 
         stats.z_intensity_profile.plot(
             df_stats_tmp,
-            fov_save_path="{}/fov_z_intensity_profile_{}.png".format(save_dir, u_protein),
-            mean_save_path="{}/mean_z_intensity_profile_{}.png".format(save_dir, u_protein),
+            save_dir,
+            suffix=u_protein,
             center_on_channel="Ch1_z_intensity_profile"
         )
 
@@ -189,7 +190,7 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     with open(stats_path, "wb") as f:
         pickle.dump(stats, f)
 
-    im_proj = utils.rowim2proj(im)
+    im_proj = utils.rowim2proj(im, ch)
 
     with writers.PngWriter(proj_path) as writer:
         writer.save(im_proj)
