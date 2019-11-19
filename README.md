@@ -67,12 +67,6 @@ To unmount when you're all done:
 umount ./data/
 ```
 
-## Running the notebook
-```
-jupyter notebook accessing_and_exploring_data.ipynb
-```
-This should start a web browser with the notebook.
-
 ## Documentation
 For full package documentation please visit [AllenCellModeling.github.io/fov_processing_pipeline](https://AllenCellModeling.github.io/fov_processing_pipeline).
 
