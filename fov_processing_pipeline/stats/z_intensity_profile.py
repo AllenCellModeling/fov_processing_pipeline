@@ -16,7 +16,7 @@ def im2stats(im, channel_names=None) -> pd.DataFrame:
     ----------
     im: np.array
         CYXZ image
-    
+
     Returns
     -------
     df_stats: pd.DataFrame
@@ -53,11 +53,11 @@ def plot(
         pandas dataframe from im2stats
     """
     template_str = "{save_dir}/{prefix}{FEATURE_NAME}_{suffix}.png"
-    
+
     template_dict = {"save_dir": save_dir,
-        "prefix": "prefix",
-        "FEATURE_NAME": FEATURE_NAME,
-        "suffix": suffix}
+                     "prefix": "prefix",
+                     "FEATURE_NAME": FEATURE_NAME,
+                     "suffix": suffix}
 
     template_dict["prefix"] = "mean"
     mean_path = template_str.format(**template_dict)
@@ -82,8 +82,8 @@ def plot(
     if normalize_intensity:
         y_label_suffix = " (normalized)"
 
-    # create dataframe to store final z indices and intensities with a channel marker - this is for plotting means by channel later
-    df_means = pd.DataFrame(columns=['z', 'intensity','ch'])
+    # create dataframe to store final z indices and intensities with a channel marker
+    df_means = pd.DataFrame(columns=['z', 'intensity', 'ch'])
     plt.figure()
 
     label_flag = True
@@ -109,18 +109,17 @@ def plot(
                 v = v - np.mean(v)
                 v = v/np.std(v)
 
-
             if label_flag:
                 label = column
             else:
                 label = None
 
-            df_tmp = pd.DataFrame({'z': x_pos, 'intensity':v, 'ch':column})
-            
+            df_tmp = pd.DataFrame({'z': x_pos, 'intensity': v, 'ch': column})
+
             df_means = df_means.append(df_tmp, ignore_index=True)
             plt.plot(x_pos, v, color=color, label=label)
 
-        label_flag = False    
+        label_flag = False
 
     plt.legend()
     plt.xlabel("z-position{}".format(x_label_suffix))
@@ -139,8 +138,8 @@ def plot(
         means = []
         stds = []
         for z in z_vals:
-            means.append(np.mean(df_ch[df_ch['z']==z]['intensity']))
-            stds.append(np.std(df_ch[df_ch['z']==z]['intensity']))
+            means.append(np.mean(df_ch[df_ch['z'] == z]['intensity']))
+            stds.append(np.std(df_ch[df_ch['z'] == z]['intensity']))
 
         # plot mean as a solid line and shade area +- standard deviation relative to mean
         plt.plot(z_vals, means, color=color, label=df_ch['ch'].iloc[0])
