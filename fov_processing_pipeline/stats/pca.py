@@ -21,7 +21,7 @@ def plot(
     ----------
     df_stats: pd.DataFrame
         pandas dataframe from im2stats
-    
+
     save_dir: str
         directory in which plot is saved. File name is determined automatically
 

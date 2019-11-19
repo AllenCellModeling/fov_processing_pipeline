@@ -92,7 +92,7 @@ def plot(
     if normalize_intensity:
         y_label_suffix = " (normalized)"
 
-    # create dataframe to store final z indices and intensities with a channel marker - this is for plotting means by channel later
+    # create dataframe to store final z indices and intensities with a channel marker
     df_means = pd.DataFrame(columns=["z", "intensity", "ch"])
 
     plt.figure()
