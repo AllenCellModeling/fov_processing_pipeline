@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,7 +6,7 @@ from matplotlib import cm
 
 from .utils import check_input
 
-FEATURE_NAME = "_z_intensity_profile"
+FEATURE_NAME = "z_intensity_profile"
 
 
 def im2stats(im, channel_names=None) -> pd.DataFrame:
@@ -28,7 +29,7 @@ def im2stats(im, channel_names=None) -> pd.DataFrame:
     stats_dict = dict()
 
     for ch, channel_name in zip(im, channel_names):
-        stats_dict["{}{}".format(channel_name, FEATURE_NAME)] = np.array(
+        stats_dict["{}_{}".format(FEATURE_NAME, channel_name)] = np.array(
             ch.sum(0).sum(0)
         )
 
@@ -52,21 +53,30 @@ def plot(
     df_stats: pd.DataFrame
         pandas dataframe from im2stats
     """
-    template_str = "{save_dir}/{prefix}{FEATURE_NAME}_{suffix}.png"
 
-    template_dict = {"save_dir": save_dir,
-                     "prefix": "prefix",
-                     "FEATURE_NAME": FEATURE_NAME,
-                     "suffix": suffix}
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    template_dict["prefix"] = "mean"
+    if suffix:
+        suffix = "_{}".format(suffix)
+
+    template_str = "{save_dir}/{FEATURE_NAME}{prefix}{suffix}.png"
+
+    template_dict = {
+        "save_dir": save_dir,
+        "prefix": None,
+        "FEATURE_NAME": FEATURE_NAME,
+        "suffix": suffix,
+    }
+
+    template_dict["prefix"] = "_mean"
     mean_path = template_str.format(**template_dict)
 
-    template_dict["prefix"] = "fov"
+    template_dict["prefix"] = "_fov"
     fov_path = template_str.format(**template_dict)
 
     # make sure we only use columns that are for this feature
-    columns = [c for c in df_stats.columns if c.endswith(FEATURE_NAME)]
+    columns = [c for c in df_stats.columns if c.startswith(FEATURE_NAME)]
 
     df_stats = df_stats[columns]
 
@@ -83,7 +93,8 @@ def plot(
         y_label_suffix = " (normalized)"
 
     # create dataframe to store final z indices and intensities with a channel marker
-    df_means = pd.DataFrame(columns=['z', 'intensity', 'ch'])
+    df_means = pd.DataFrame(columns=["z", "intensity", "ch"])
+
     plt.figure()
 
     label_flag = True
@@ -107,14 +118,14 @@ def plot(
                 # v = v / np.sum(v)
 
                 v = v - np.mean(v)
-                v = v/np.std(v)
+                v = v / np.std(v)
 
             if label_flag:
                 label = column
             else:
                 label = None
 
-            df_tmp = pd.DataFrame({'z': x_pos, 'intensity': v, 'ch': column})
+            df_tmp = pd.DataFrame({"z": x_pos, "intensity": v, "ch": column})
 
             df_means = df_means.append(df_tmp, ignore_index=True)
             plt.plot(x_pos, v, color=color, label=label)
@@ -131,20 +142,21 @@ def plot(
     # make plot of means for each channel
     plt.figure()
     for color, ch in zip(colors, range(len(columns))):
-        df_ch = df_means[df_means['ch'].str.contains(str(ch))]
-        z_vals = np.arange(min(df_ch['z']), max(df_ch['z'])+1)
+        df_ch = df_means[df_means["ch"].str.contains(str(ch))]
+        z_vals = np.arange(min(df_ch["z"]), max(df_ch["z"]) + 1)
 
         # get mean and standard deviation by z index
         means = []
         stds = []
         for z in z_vals:
-            means.append(np.mean(df_ch[df_ch['z'] == z]['intensity']))
-            stds.append(np.std(df_ch[df_ch['z'] == z]['intensity']))
+
+            means.append(np.mean(df_ch[df_ch["z"] == z]["intensity"]))
+            stds.append(np.std(df_ch[df_ch["z"] == z]["intensity"]))
 
         # plot mean as a solid line and shade area +- standard deviation relative to mean
-        plt.plot(z_vals, means, color=color, label=df_ch['ch'].iloc[0])
-        y1 = [means[i]-stds[i] for i in range(len(means))]
-        y2 = [means[i]+stds[i] for i in range(len(means))]
+        plt.plot(z_vals, means, color=color, label=df_ch["ch"].iloc[0])
+        y1 = [means[i] - stds[i] for i in range(len(means))]
+        y2 = [means[i] + stds[i] for i in range(len(means))]
         plt.fill_between(z_vals, y1, y2, color=color, alpha=0.1)
     plt.legend()
     plt.xlabel("z-position{}".format(x_label_suffix))

@@ -117,7 +117,7 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     ----------
     df_stats: pd.DataFrame
         Big dataframe of statistics determined by the combination of data2stats and load_stats
-    
+
     """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -125,6 +125,9 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     u_proteins = np.unique(df_stats.ProteinDisplayName)
 
     for u_protein in u_proteins:
+
+        u_protein = 'Lamin B1'
+
         df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
 
         stats.plot_im_percentiles(
@@ -135,10 +138,26 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
 
         stats.z_intensity_profile.plot(
             df_stats_tmp,
-            save_dir,
+            "{}/z_intensity_profile".format(save_dir),
             suffix=u_protein,
-            center_on_channel="Ch1_z_intensity_profile"
+            center_on_channel="z_intensity_profile_Ch1",
         )
+
+        stats.z_intensity_profile.plot(
+            df_stats_tmp,
+            "{}/z_intensity_profile_uncentered".format(save_dir),
+            suffix=u_protein,
+        )
+
+    # drop the non feature data
+
+    # TODO do this in a better way... probably use well annotated anndata instead of Pandas
+
+    stats.pca.plot(
+        df_stats.drop(["FOVId", "ProteinDisplayName"], axis=1),
+        save_dir,
+        labels=df_stats["ProteinDisplayName"],
+    )
 
 
 def save_load_data(save_dir, trim_data=False, overwrite=False):

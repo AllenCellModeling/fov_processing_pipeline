@@ -53,6 +53,7 @@ requirements = [
     "jupyterlab",
     "matplotlib",
     "aicsimageio",
+    "scikit-learn",
 ]
 
 extra_requirements = {
