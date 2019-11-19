@@ -12,7 +12,7 @@ Pipeline tools for high-throughput analysis of AICS Pipeline FOVs
 ---
 
 ## Features
-It's a jupyter notebook for Pipeline 4 Data!
+It's a data pipeline Pipeline 4 Data!
 The notebook desmonstrates a proof of concept for...
 * Accessing files via labkey
 * Access FOV-level and Cell-level images and metadata
