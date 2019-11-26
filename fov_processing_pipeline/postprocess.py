@@ -3,12 +3,12 @@ import numpy as np
 
 def fov_qc(df):
     """
-    Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the brightfield channel at the bottom of the image.
+    Given a stats dataframe, check for any FOV's that have their brightest average zslice DNA intensity at the bottom.
     This is an indicator of a slice being out of order, and we want to QC these out of our list.
     Parameters
     ----------
     df: Dataframe
-        A stats dataframe, containing rows corresponding to FOVs, and having a column with the mean intensity for the DNA channel, for each zslice in each FOV
+        Stats dataframe, with rows corresponding to FOVs and a column for the mean DNA intensity, for each zslice
     Returns
     -------
     df: Dataframe
@@ -31,11 +31,11 @@ def zsize_qc(df):
     Parameters
     ----------
     df: Dataframe
-        A stats dataframe, containing rows corresponding to FOVs, and having a column with the mean intensity for the DNA channel, for each zslice in each FOV
+        Stats dataframe, with rows corresponding to FOVs and a column for the mean DNA intensity, for each zslice
     Returns
     -------
     df: Dataframe
-        Same dataframe, with any FOV's with a length differing from the median having their stats interpolated so that all FOV stats now match in z-size
+        Same dataframe, with stats interpolated so that all FOV stats now match in z-size
     """
 
     # get median number of z slices
