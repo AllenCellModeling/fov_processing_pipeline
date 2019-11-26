@@ -3,7 +3,6 @@ import numpy as np
 import warnings
 from sys import platform
 
-
 from .utils import int2rand
 
 

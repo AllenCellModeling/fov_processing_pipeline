@@ -24,7 +24,7 @@ def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
             "Struct": df_row["ChannelNumberStruct"],
         }
     )
-    ch_reorg = [ch2ind[ch] for ch in ch_order]
+    ch_reorg = [int(ch2ind[ch]) for ch in ch_order]
 
     return im[ch_reorg, :, :, :], ch_order
 
@@ -126,7 +126,7 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
 
     for u_protein in u_proteins:
 
-        u_protein = 'Lamin B1'
+        u_protein = "Lamin B1"
 
         df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
 
@@ -217,13 +217,12 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     return
 
 
-def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
+def im2diagnostics(fov_data, proj_paths, save_dir, overwrite=False):
 
     warnings.warn("Overwrite checking currently not implemented.")
 
-    if not os.path.exists(diagnostics_dir):
-        os.makedirs(diagnostics_dir)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    reports.im2bigim(
-        proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, diagnostics_dir
-    )
+    reports.im2bigim(proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, save_dir)
+
