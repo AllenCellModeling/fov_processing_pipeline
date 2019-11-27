@@ -43,9 +43,9 @@ def main():
     )
     p.add_argument(
         "--trim_data",
-        type=utils.str2bool,
-        default=True,
-        help="Use cleaned data subset",
+        type=int,
+        default=10,
+        help="Trim cleaned data to this number (int) of fov's per cell line.",
     )
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
@@ -86,8 +86,10 @@ def main():
         ):
             wrappers.process_fov_row(fov_row, stats_path, proj_path, p.overwrite)
 
-    # load stats from each FOV
+    # load, qc, and save stats from each FOV
     df_stats = wrappers.load_stats(fov_data, stats_paths)
+    df_stats = wrappers.qc_stats(df_stats)
+    df_stats.to_pickle("{}/fov_stats.pkl".format(p.save_dir))
 
     # make plots from those stats
     wrappers.stats2plots(df_stats, save_dir="{}/stats_plots".format(p.save_dir))

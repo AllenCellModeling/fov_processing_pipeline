@@ -177,7 +177,7 @@ def get_fov_data():
     return _cell_data_to_fov_data(cell_data)
 
 
-def get_data(use_trim_data=False):
+def get_data(num_trim_data=None):
 
     # Returns dataframe containing image paths and metadata for pipeline4
     #
@@ -185,8 +185,8 @@ def get_data(use_trim_data=False):
 
     cell_data = get_cell_data()
 
-    if use_trim_data:
-        cell_data = trim_data(cell_data, n_fovs=10)
+    if num_trim_data is not None:
+        cell_data = trim_data(cell_data, n_fovs=num_trim_data)
 
     fov_data = _cell_data_to_fov_data(cell_data)
 

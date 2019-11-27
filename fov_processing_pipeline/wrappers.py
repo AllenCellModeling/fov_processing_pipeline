@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 from aicsimageio import imread, writers
 
-from . import data, utils, stats, reports
+from . import data, utils, stats, reports, postprocess
 
 
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
@@ -24,7 +24,7 @@ def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
             "Struct": df_row["ChannelNumberStruct"],
         }
     )
-    ch_reorg = [ch2ind[ch] for ch in ch_order]
+    ch_reorg = [int(ch2ind[ch]) for ch in ch_order]
 
     return im[ch_reorg, :, :, :], ch_order
 
@@ -59,7 +59,7 @@ def im2stats(im):
 
 def data2stats(df, save_dir, overwrite=False, fov_flag=False):
     ############################################
-    # For a given cell or fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
+    # For a given fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
     # Inputs:
     #   - df: dataframe of cell data including CYXZ images
     #   - save_dir: directory to save stats dataframe
@@ -126,8 +126,6 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
 
     for u_protein in u_proteins:
 
-        u_protein = 'Lamin B1'
-
         df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
 
         stats.plot_im_percentiles(
@@ -160,7 +158,7 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     )
 
 
-def save_load_data(save_dir, trim_data=False, overwrite=False):
+def save_load_data(save_dir, trim_data=None, overwrite=False):
     # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
     #
     # save_dir - directory in which data is saved
@@ -172,7 +170,7 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
 
     if not os.path.exists(cell_data_path) or overwrite:
 
-        cell_data, fov_data = data.get_data(use_trim_data=trim_data)
+        cell_data, fov_data = data.get_data(num_trim_data=trim_data)
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -227,3 +225,9 @@ def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
     reports.im2bigim(
         proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, diagnostics_dir
     )
+
+
+def qc_stats(df_stats):
+    df_stats = postprocess.fov_qc(df_stats)
+    df_stats = postprocess.zsize_qc(df_stats)
+    return df_stats
