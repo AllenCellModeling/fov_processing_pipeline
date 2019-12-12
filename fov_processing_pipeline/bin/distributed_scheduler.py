@@ -24,8 +24,13 @@ def main():
     # Distributed host for
 
     p = argparse.ArgumentParser(prog="process", description="Process the FOV pipeline")
+
     p.add_argument(
-        "--n_jobs", type=int, default=300, help="Use cleaned data subset",
+        "--min_jobs", type=int, default=300, help="Minimum number of jobs to use",
+    )
+
+    p.add_argument(
+        "--max_jobs", type=int, default=300, help="Maximum number of jobs to use",
     )
     p.add_argument(
         "--walltime", type=int, default=5, help="Walltime in hours",
@@ -36,16 +41,14 @@ def main():
 
     args = p.parse_args()
 
-    n_jobs = args.n_jobs
-
     cluster = SLURMCluster(
         cores=2,
-        memory="8GB",
+        memory="16GB",
         walltime="{}:00:00".format(args.walltime),
         queue="aics_cpu_general",
     )
 
-    cluster.adapt(minimum_jobs=5, maximum_jobs=n_jobs)
+    cluster.adapt(minimum_jobs=args.min_jobs, maximum_jobs=args.max_jobs)
     client = dask.distributed.Client(cluster)  # noqa
 
     connection_info = {}

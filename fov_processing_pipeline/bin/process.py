@@ -6,7 +6,9 @@ import logging
 import os
 from pathlib import Path
 
-from fov_processing_pipeline import wrappers, utils, reports
+from prefect import task, Flow
+
+from fov_processing_pipeline import wrappers, utils
 
 
 ###############################################################################
@@ -19,15 +21,35 @@ logging.basicConfig(
 ###############################################################################
 
 
+@task
+def get_save_paths(save_dir, fov_data):
+    # Sets up the save paths for all of the results
+    summary_path = "{}/summary.csv".format(save_dir)
+
+    stats_paths = [
+        "{}/plate_{}/stats_{}.pkl".format(save_dir, row.PlateId, row.FOVId)
+        for i, row in fov_data.iterrows()
+    ]
+    proj_paths = [
+        "{}/plate_{}/proj_{}.png".format(save_dir, row.PlateId, row.FOVId)
+        for i, row in fov_data.iterrows()
+    ]
+
+    stats_plots_dir = "{}/stats_plots".format(save_dir)
+    diagnostics_dir = "{}/diagnostics".format(save_dir)
+
+    return summary_path, stats_paths, proj_paths, stats_plots_dir, diagnostics_dir
+
+
+@task
+def get_data_rows(fov_data):
+    return [row[1] for row in fov_data.iterrows()]
+
+
 def main():
-    # Main function for the FOV processing pipeline
-    #
-    # This function performs the following operations
-    # - loads FOV data from labkey
-    # - creates a summary table of FOV data
-    # - computes image statistics of each FOV
-    # - creates summary plots of each FOV
-    # - saves image projections for easy viewing
+    """
+    Dask/Prefect distributed command for running pipeline
+    """
 
     p = argparse.ArgumentParser(prog="process", description="Process the FOV pipeline")
     p.add_argument(
@@ -58,15 +80,13 @@ def main():
         default=False,
         help="Do debugging things (currently applies only to distributed)",
     )
-
     # distributed stuff
     p.add_argument(
         "--distributed",
         type=utils.str2bool,
         default=False,
-        help="Use Dask to do distributed compute.",
+        help="Use Prefect/Dask to do distributed compute.",
     )
-
     p.add_argument(
         "--port",
         type=int,
@@ -77,214 +97,65 @@ def main():
     p = p.parse_args()
 
     save_dir = str(Path(p.save_dir).resolve())
+    trim_data = p.trim_data
+    overwrite = p.overwrite
+    use_current_results = p.use_current_results
 
     log.info("Saving in {}".format(save_dir))
 
     if not os.path.exists(p.save_dir):
         os.makedirs(p.save_dir)
 
-    if p.distributed:
-        process_distributed(
-            save_dir=save_dir,
-            trim_data=p.trim_data,
-            overwrite=p.overwrite,
-            use_current_results=p.use_current_results,
-            port=p.port,
-            debug=p.debug,
-        )
-
-    else:
-        process(
-            save_dir=save_dir,
-            trim_data=p.trim_data,
-            overwrite=p.overwrite,
-            use_current_results=p.use_current_results,
-        )
-
-
-def get_save_paths(save_dir, fov_data):
-    # Sets up the save paths for all of the results
-    summary_path = "{}/summary.csv".format(save_dir)
-
-    stats_paths = [
-        "{}/plate_{}/stats_{}.pkl".format(save_dir, row.PlateId, row.FOVId)
-        for i, row in fov_data.iterrows()
-    ]
-    proj_paths = [
-        "{}/plate_{}/proj_{}.png".format(save_dir, row.PlateId, row.FOVId)
-        for i, row in fov_data.iterrows()
-    ]
-
-    stats_plots_dir = "{}/stats_plots".format(save_dir)
-    diagnostics_dir = "{}/diagnostics".format(save_dir)
-
-    return summary_path, stats_paths, proj_paths, stats_plots_dir, diagnostics_dir
-
-
-def process(
-    save_dir="./results/", trim_data=True, overwrite=False, use_current_results=False
-):
-    """
-    Main single-thread command for running pipeline
-
-    Parameters
-    ----------
-    save_dir: str = "./results/"
-
-        Save directory of all results
-
-    trim_data: bool = True
-        Use a trimmed subset of data
-
-    overwrite: bool = False
-        Overwrite currently existing results
-
-    use_current_results: bool = False
-        Don't worry about doing any processing, just rebuild the output plots
-    """
-
-    # load  dataset
-    cell_data, fov_data = wrappers.save_load_data(
-        save_dir, trim_data=trim_data, overwrite=overwrite
-    )
-
-    (
-        summary_path,
-        stats_paths,
-        proj_paths,
-        stats_plots_dir,
-        diagnostics_dir,
-    ) = get_save_paths(save_dir, fov_data)
-
-    #  make a summary table and save it
-    reports.cell_data_to_summary_table(cell_data).to_csv(summary_path)
-
-    if not use_current_results:
-        # for every FOV, do the processing steps
-        for (i, fov_row), stats_path, proj_path in zip(
-            fov_data.iterrows(), stats_paths, proj_paths
-        ):
-            wrappers.process_fov_row(fov_row, stats_path, proj_path, overwrite)
-
-    # load stats from each FOV
-    df_stats = wrappers.load_stats(fov_data, stats_paths)
-
-    # make plots from those stats
-    wrappers.stats2plots(df_stats, save_dir=stats_plots_dir)
-
-    # projection paths to diagnostics path
-    wrappers.im2diagnostics(fov_data, proj_paths, save_dir=diagnostics_dir)
-
-
-def process_distributed(
-    save_dir="./results/",
-    trim_data=True,
-    overwrite=False,
-    use_current_results=False,
-    port=99999,
-    debug=False,
-):
-    """
-    Dask/Prefect distributed command for running pipeline
-
-    Parameters
-    ----------
-    save_dir: str = "./results/"
-
-        Save directory of all results
-
-    trim_data: bool = True
-        Use a trimmed subset of data
-
-    overwrite: bool = False
-        Overwrite currently existing results
-
-    use_current_results: bool = False
-        Don't worry about doing any processing, just rebuild the output plots
-
-    port: int = 99999
-        Port over which to communicate to the Dask scheduler
-    """
     # https://github.com/AllenCellModeling/scheduler_tools/blob/master/remote_job_scheduling.md
 
-    from prefect import task, Flow
-    from prefect.triggers import any_successful
-
-    if debug:
-        from prefect.engine.executors import LocalExecutor
-
-        executor = LocalExecutor()
-    else:
+    if p.distributed:
         from prefect.engine.executors import DaskExecutor
 
         executor = DaskExecutor(
-            address="tcp://localhost:{PORT}".format(**{"PORT": port})
+            address="tcp://localhost:{PORT}".format(**{"PORT": p.port})
         )
+    else:
+        from prefect.engine.executors import LocalExecutor
 
-    @task(name="save_load_data_fn")
-    def save_load_data(save_dir, trim_data, overwrite):
-        cell_data, fov_data = wrappers.save_load_data(
-            save_dir, trim_data=trim_data, overwrite=overwrite
-        )
-        return cell_data, fov_data
+        executor = LocalExecutor()
 
-    @task(name="get_save_paths_fn")
-    def get_save_paths_(save_dir, fov_data):
-        (
-            summary_path,
-            stats_paths,
-            proj_paths,
-            stats_plots_dir,
-            diagnostics_dir,
-        ) = get_save_paths(save_dir, fov_data)
-        return summary_path, stats_paths, proj_paths, stats_plots_dir, diagnostics_dir
-
-    @task(name="cell_data_to_summary_table_fn")
-    def cell_data_to_summary_table(cell_data, summary_path):
-        reports.cell_data_to_summary_table(cell_data).to_csv(summary_path)
-
-    @task(name="get_data_rows")
-    def get_data_rows(fov_data):
-        return [row[1] for row in fov_data.iterrows()]
-
-    @task
-    def process_fov_row(fov_row, stats_path, proj_path, overwrite):
-        wrappers.process_fov_row(fov_row, stats_path, proj_path, overwrite)
-
-    @task(name="load_stats_fn", trigger=any_successful)
-    def load_stats(fov_data, stats_paths):
-        df_stats = wrappers.load_stats(fov_data, stats_paths)
-        return df_stats
-
-    @task(name="stats2plots_fn")
-    def stats2plots(df_stats, save_dir):
-        wrappers.stats2plots(df_stats, save_dir=save_dir)
-
-    @task(name="im2diagnostics_fn")
-    def im2diagnostics(fov_data, proj_paths, save_dir):
-        wrappers.im2diagnostics(fov_data, proj_paths, save_dir=save_dir)
-
+    # This is the main function
     with Flow("FOV_processing_pipeline") as flow:
         # for every FOV, do the processing steps
-        data = save_load_data(save_dir, trim_data, overwrite)
 
+        ###########
+        # load data
+        ###########
+        data = wrappers.save_load_data(save_dir, trim_data, overwrite)
+
+        # we have to unpack this way because of Prefect-reasons
         cell_data = data[0]
         fov_data = data[1]
 
-        paths = get_save_paths_(save_dir, fov_data)
+        ###########
+        # get all of the save paths
+        ###########
+        paths = get_save_paths(save_dir, fov_data)
 
+        # we have to unpack this way because of Prefect-reasons
         summary_path = paths[0]
         stats_paths = paths[1]
         proj_paths = paths[2]
         stats_plots_dir = paths[3]
         diagnostics_dir = paths[4]
 
-        cell_data_to_summary_table(cell_data, summary_path)
+        ###########
+        # Summary Table
+        ###########
+        wrappers.cell_data_to_summary_table(cell_data, summary_path)
 
+        ###########
+        # The bit per-fov map step
+        ###########
         fov_rows = get_data_rows(fov_data)
 
         if not use_current_results:
-            process_fov_row_map = process_fov_row.map(
+            process_fov_row_map = wrappers.process_fov_row.map(
                 fov_row=fov_rows,
                 stats_path=stats_paths,
                 proj_path=proj_paths,
@@ -294,23 +165,30 @@ def process_distributed(
         else:
             upstream_tasks = None
 
-        # load stats from each FOV
-        df_stats = load_stats(fov_data, stats_paths, upstream_tasks=upstream_tasks)
+        ###########
+        # Load relevant data for a reduce step
+        ###########
+        df_stats = wrappers.load_stats(
+            fov_data, stats_paths, upstream_tasks=upstream_tasks
+        )
 
-        stats2plots(df_stats, save_dir=stats_plots_dir, upstream_tasks=[df_stats])
-        im2diagnostics(
+        ###########
+        # Make Plots
+        ###########
+        wrappers.stats2plots(
+            df_stats, save_dir=stats_plots_dir, upstream_tasks=[df_stats]
+        )
+
+        ###########
+        # Make diagnostic images
+        ###########
+        wrappers.im2diagnostics(
             fov_data, proj_paths, save_dir=diagnostics_dir, upstream_tasks=[df_stats]
         )
 
     state = flow.run(executor=executor)
 
     df_stats = state.result[flow.get_tasks(name="load_stats_fn")[0]].result
-
-    # # make plots from those stats
-    # wrappers.stats2plots(df_stats, save_dir=stats_plots_dir)
-
-    # # projection paths to diagnostics path
-    # wrappers.im2diagnostics(fov_data, proj_paths, save_dir=diagnostics_dir)
 
     log.info("Done!")
 
