@@ -67,6 +67,19 @@ To unmount when you're all done:
 umount ./data/
 ```
 
+## Quality Control
+This pipeline include a couple simple protocols for quality control of FOV data.
+* Number of z-slices in z-stacks
+Not all FOV's have the same number of z-slices (or xy images) in their z-stacks. This can impact the user's ability to perform some statistical analysis on the data, such as PCA. To correct for this, the pipeline finds the most common number of z-slices, and interpolates z-stacks with more or less z-slices into a new z-stack with the same number of z-slices.
+* Out-of-order z-slices
+Through our data exploration using this pipeline, we discovered that some z-stacks have a z-slice from the middle of the z-stack misplced to the bottom of the z-stack. To address this, the QC processing of this pipeline removes those FOV's from the FOV dataset (i.e. it is not included in the FOV summary table used to all image analysis).
+
+## Diagnostics and Analysis
+This pipeline includes some basic image diagnostic and analysis tools to get the user started with exploring the data.
+* Diagnostic images: For a quick view of FOV z-stacks, an image of the maximum project along the xy- xz- and yz- axes are rendered in a single image for each z-stacks, including all channels in different colors
+* Channel intensity by z-depth: To display how structure varies across height within a z-stack, and average intensity profile as a function of z is generated for each channel, for each structure; that is, for all FOV's with the same labeled structure, the brightfield, DNA, cell membrane, and structure intensity is averaged across all FOVs at each z-height, and plotted. These intensity profiles may be plotted against the actual z-height, or can be centered relative to the maximum position of the DNA
+
+
 ## Documentation
 For full package documentation please visit [AllenCellModeling.github.io/fov_processing_pipeline](https://AllenCellModeling.github.io/fov_processing_pipeline).
 
