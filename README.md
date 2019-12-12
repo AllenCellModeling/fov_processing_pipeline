@@ -16,6 +16,7 @@ It's a data pipeline Pipeline 4 Data!
 The notebook desmonstrates a proof of concept for...
 * Accessing files via labkey
 * Access FOV-level and Cell-level images and metadata
+* Perform simple quality control tests
 * Make some simple plots for data exploration
 
 For more information see [this presentation](https://docs.google.com/presentation/d/13nFQ0KDxBti7Vgont6fcrv0gaE3NaGr-Deb-aNl2xLY/edit?usp=sharing)
