@@ -1,9 +1,5 @@
 # FOV Processing Pipeline
 
-
-<!--
-[![Documentation](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Documentation/badge.svg)](https://gregjohnso.github.io/fov_processing_pipeline)
--->
 [![Build Status](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Build%20Master/badge.svg)](https://github.com/AllenCellModeling/fov_processing_pipeline/actions)
 [![Code Coverage](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline)
 
@@ -12,11 +8,13 @@ Pipeline tools for high-throughput analysis of AICS Pipeline FOVs
 ---
 
 ## Features
-It's a data pipeline Pipeline 4 Data!
-The notebook desmonstrates a proof of concept for...
+It's a data pipeline for Pipeline 4 Data!
+The toolkit demonstrates a proof of concept for...
 * Accessing files via labkey
 * Access FOV-level and Cell-level images and metadata
 * Make some simple plots for data exploration
+and...
+* Distributed parallelization via Prefect/Dask. Wow!
 
 For more information see [this presentation](https://docs.google.com/presentation/d/13nFQ0KDxBti7Vgont6fcrv0gaE3NaGr-Deb-aNl2xLY/edit?usp=sharing)
 
@@ -46,7 +44,6 @@ cd fov_processing_pipeline
 ```
 
 **Install**  
-
 ```
 pip install .[dev]
 ```
@@ -67,6 +64,19 @@ To unmount when you're all done:
 umount ./data/
 ```
 
+## Running
+The main function can be run with the command
+```
+fpp_process
+```
+
+If you want to see all the options do
+```
+fpp_process -h
+```
+
+If you want to use this in a distributed context, then read the directions [here](./docs/distributed_instructions.md).
+
 ## Documentation
 For full package documentation please visit [AllenCellModeling.github.io/fov_processing_pipeline](https://AllenCellModeling.github.io/fov_processing_pipeline).
 
@@ -74,4 +84,3 @@ For full package documentation please visit [AllenCellModeling.github.io/fov_pro
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information related to developing the code.
 
 ***Free software: Allen Institute Software License***
-

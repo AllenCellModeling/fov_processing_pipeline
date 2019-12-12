@@ -47,7 +47,6 @@ interactive_requirements = [
 ]
 
 distributed_requirements = [
-    "prefect",
     "dask",
     "dask_jobqueue",
     "bokeh",
@@ -62,6 +61,7 @@ requirements = [
     "matplotlib",
     "aicsimageio",
     "scikit-learn",
+    "prefect",
 ]
 
 extra_requirements = {

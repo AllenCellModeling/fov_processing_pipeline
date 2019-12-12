@@ -61,9 +61,9 @@ def main():
     )
     p.add_argument(
         "--trim_data",
-        type=utils.str2bool,
-        default=True,
-        help="Use cleaned data subset",
+        type=int,
+        default=10,
+        help="Trim cleaned data to this number (int) of fov's per cell line.",
     )
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
@@ -166,11 +166,16 @@ def main():
             upstream_tasks = None
 
         ###########
-        # Load relevant data for a reduce step
+        # Load relevant data as a reduce step
         ###########
         df_stats = wrappers.load_stats(
             fov_data, stats_paths, upstream_tasks=upstream_tasks
         )
+
+        ###########
+        # QC data based on previous thresholds, etc
+        ###########
+        df_stats = wrappers.qc_stats(df_stats, "{}/fov_stats_qc.pkl".format(p.save_dir))
 
         ###########
         # Make Plots

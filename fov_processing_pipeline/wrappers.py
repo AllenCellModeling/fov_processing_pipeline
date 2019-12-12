@@ -6,7 +6,7 @@ import numpy as np
 from aicsimageio import imread, writers
 from prefect import task
 
-from . import data, utils, stats, reports
+from . import data, utils, stats, reports, postprocess
 
 
 @task
@@ -68,7 +68,7 @@ def im2stats(im):
 @task
 def data2stats(df, save_dir, overwrite=False, fov_flag=False):
     ############################################
-    # For a given cell or fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
+    # For a given fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
     # Inputs:
     #   - df: dataframe of cell data including CYXZ images
     #   - save_dir: directory to save stats dataframe
@@ -136,9 +136,6 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     u_proteins = np.unique(df_stats.ProteinDisplayName)
 
     for u_protein in u_proteins:
-
-        u_protein = "Lamin B1"
-
         df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
 
         stats.plot_im_percentiles(
@@ -184,7 +181,7 @@ def save_load_data(save_dir, trim_data=False, overwrite=False):
 
     if not os.path.exists(cell_data_path) or overwrite:
 
-        cell_data, fov_data = data.get_data(use_trim_data=trim_data)
+        cell_data, fov_data = data.get_data(num_trim_data=trim_data)
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -240,3 +237,12 @@ def im2diagnostics(fov_data, proj_paths, save_dir, overwrite=False):
 
     reports.im2bigim(proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, save_dir)
 
+
+@task
+def qc_stats(df_stats, save_path):
+    df_stats = postprocess.fov_qc(df_stats)
+    df_stats = postprocess.zsize_qc(df_stats)
+
+    df_stats.to_pickle(save_path)
+
+    return df_stats

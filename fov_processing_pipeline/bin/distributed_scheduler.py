@@ -63,11 +63,18 @@ def main():
         )
     )
 
-    log.info("Copy and paste the following string to forward ports to the server")
+    log.info(
+        "In a new terimal the machine that you run the pipeline on, copy and paste the following string to forward ports to this server:"
+    )
     log.info(connection_str)
-
-    log.info("Then use the following command to kick off your FPP jobs")
+    log.info(" ")
+    log.info("Then use the following command to kick off your FPP jobs:")
     log.info("fpp_process --distributed 1 --port {PORT}".format(**connection_info))
+    log.info(" ")
+    log.info("You can see the dashboard on:")
+    log.info("localhost:{PORT}".format(**connection_info))
+    log.info(" ")
+    log.info("Command + C will teardown the server.")
 
     try:
         time.sleep(args.up_time * 60 * 60)
