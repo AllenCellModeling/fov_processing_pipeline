@@ -67,6 +67,29 @@ To unmount when you're all done:
 umount ./data/
 ```
 
+## Quick start
+To run the entire pipeline with default settings, start by following the above instructions for installation, environment setup and mounting the data. Then navigate to the repository in a terminal and simply run
+
+```
+fpp_process
+```
+
+to run the pipeline. This will include creation of FOV summary table, quality control, diagnostic image production and creation of some basic plots of z-intensity profiles of FOV channels for all structures. This runs the pipeline in the default configuration, which trims the data to only 10 FOVs per cell line, and includes only the following cell lines:
+- Nuclear lamin (Lamin B1)
+- Nucleolus DFC (Fibrillarin)
+- Nucleolus GC (Nucleophosmin)
+- Gogli (Sialytransferase 1)
+- ER (Sec61 beta)
+- Alpha actinin (Alpha actinin 1)
+- Actomyosin bundles (Non-muscle myosin heavy chain IIB)
+- Alpha tubulin
+
+Flags can be used to overwrite existing results if you have previously run the pipeline, or to generate new plots without regenerating the data, using (respectively):
+```
+--overwrite
+--use_current_results
+```
+
 ## Quality Control
 This pipeline include a couple simple protocols for quality control of FOV data.
 * Number of z-slices in z-stacks
