@@ -64,7 +64,10 @@ def main():
     )
 
     log.info(
-        "In a new terimal the machine that you run the pipeline on, copy and paste the following string to forward ports to this server:"
+        (
+            "In a new terimal the machine that you run the pipeline on, copy and paste the following string to forward "
+            "ports to this server:"
+        )
     )
     log.info(connection_str)
     log.info(" ")
