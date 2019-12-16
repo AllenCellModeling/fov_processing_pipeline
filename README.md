@@ -111,9 +111,9 @@ For full package documentation please visit [AllenCellModeling.github.io/fov_pro
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information related to developing the code.
 
 ## To do
-* Source data from Quilt rather than LabKey
+* **Source data from Quilt rather than LabKey** <br>
 The current dataset on LbaKey is not accessible to external users. Additionally, the dataset can be updated at any time without the user opting into or being aware of changes. For these reasons, this pipeline would benefit from moving to data storage through Quilt. Quilt data is accesible to anyone, regardless of affiliation within the institute, and datasets on Quilt are versioned, preventing issues with database changes breaking the pipeline without the pipeline maintainers being aware.
-* Store results such as summary statistics with AnnData rather than Pandas dataframes
+* **Store results such as summary statistics with AnnData rather than Pandas dataframes** <br>
 The data type and process for producing statistics calculated from this pipeline require flexibility and annotations. The current formatting in Pandas is rigid in the types of data that can be added and does not carry any annotations with it. This can results in column names which are simultaneously lengthy and incomplete/inadequate to describe the stored statistics. This pipeline would be improved by implementing a tool like this to better document all stored statisticas/results/summaries in tables.
 
 
