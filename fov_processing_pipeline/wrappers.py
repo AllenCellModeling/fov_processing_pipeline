@@ -4,10 +4,12 @@ import pandas as pd
 import pickle
 import numpy as np
 from aicsimageio import imread, writers
+from prefect import task
 
 from . import data, utils, stats, reports, postprocess
 
 
+@task
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
     # take a dataframe row and returns an image in CZYX format with channels in desired order
     # Default order is: Brightfield, DNA, Membrane, Structure
@@ -29,6 +31,12 @@ def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
     return im[ch_reorg, :, :, :], ch_order
 
 
+@task
+def cell_data_to_summary_table(cell_data, summary_path):
+    reports.cell_data_to_summary_table(cell_data, summary_path)
+
+
+@task
 def im2stats(im):
     ############################################
     # For a given image, calculate some basic statistcs and return as dictionary
@@ -57,6 +65,7 @@ def im2stats(im):
     return results
 
 
+@task
 def data2stats(df, save_dir, overwrite=False, fov_flag=False):
     ############################################
     # For a given fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
@@ -90,6 +99,7 @@ def data2stats(df, save_dir, overwrite=False, fov_flag=False):
     return stats_df
 
 
+@task
 def load_stats(df, stats_paths):
     # consolidate stats?
     stats_list = list()
@@ -109,6 +119,7 @@ def load_stats(df, stats_paths):
     return df_stats
 
 
+@task
 def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     """
     general stats to plots function, saves results to save_dir
@@ -125,7 +136,6 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     u_proteins = np.unique(df_stats.ProteinDisplayName)
 
     for u_protein in u_proteins:
-
         df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
 
         stats.plot_im_percentiles(
@@ -158,7 +168,8 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
     )
 
 
-def save_load_data(save_dir, trim_data=None, overwrite=False):
+@task
+def save_load_data(save_dir, trim_data=False, overwrite=False):
     # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
     #
     # save_dir - directory in which data is saved
@@ -182,6 +193,7 @@ def save_load_data(save_dir, trim_data=None, overwrite=False):
     return cell_data, fov_data
 
 
+@task
 def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     # Performs atomic operations on a data row that corresponds to a single FOV
     #
@@ -215,19 +227,22 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     return
 
 
-def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
+@task
+def im2diagnostics(fov_data, proj_paths, save_dir, overwrite=False):
 
     warnings.warn("Overwrite checking currently not implemented.")
 
-    if not os.path.exists(diagnostics_dir):
-        os.makedirs(diagnostics_dir)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    reports.im2bigim(
-        proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, diagnostics_dir
-    )
+    reports.im2bigim(proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, save_dir)
 
 
-def qc_stats(df_stats):
+@task
+def qc_stats(df_stats, save_path):
     df_stats = postprocess.fov_qc(df_stats)
     df_stats = postprocess.zsize_qc(df_stats)
+
+    df_stats.to_pickle(save_path)
+
     return df_stats

@@ -1,9 +1,5 @@
 # FOV Processing Pipeline
 
-
-<!--
-[![Documentation](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Documentation/badge.svg)](https://gregjohnso.github.io/fov_processing_pipeline)
--->
 [![Build Status](https://github.com/AllenCellModeling/fov_processing_pipeline/workflows/Build%20Master/badge.svg)](https://github.com/AllenCellModeling/fov_processing_pipeline/actions)
 [![Code Coverage](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/AllenCellModeling/fov_processing_pipeline)
 
@@ -12,12 +8,14 @@ Pipeline tools for high-throughput analysis of AICS Pipeline FOVs
 ---
 
 ## Features
-It's a data pipeline Pipeline 4 Data!
-The notebook desmonstrates a proof of concept for...
+It's a data pipeline for Pipeline 4 Data!
+The toolkit demonstrates a proof of concept for...
 * Accessing files via labkey
 * Access FOV-level and Cell-level images and metadata
 * Perform simple quality control tests
 * Make some simple plots for data exploration
+and...
+* Distributed parallelization via Prefect/Dask. Wow!
 
 For more information see [this presentation](https://docs.google.com/presentation/d/13nFQ0KDxBti7Vgont6fcrv0gaE3NaGr-Deb-aNl2xLY/edit?usp=sharing)
 
@@ -47,7 +45,6 @@ cd fov_processing_pipeline
 ```
 
 **Install**  
-
 ```
 pip install .[dev]
 ```
@@ -75,7 +72,15 @@ To run the entire pipeline with default settings, start by following the above i
 fpp_process
 ```
 
-to run the pipeline. This will include creation of FOV summary table, quality control, diagnostic image production and creation of some basic plots of z-intensity profiles of FOV channels for all structures. This runs the pipeline in the default configuration, which trims the data to only 10 FOVs per cell line, and includes only the following cell lines:
+If you want to see all the options do
+```
+fpp_process -h
+```
+
+If you want to use this in a distributed context, then read the directions [here](./docs/distributed_instructions.md).
+
+
+Running the pipeline will include creation of FOV summary table, quality control, diagnostic image production and creation of some basic plots of z-intensity profiles of FOV channels for all structures. This runs the pipeline in the default configuration, which trims the data to only 10 FOVs per cell line, and includes only the following cell lines:
 - Nuclear lamin (Lamin B1)
 - Nucleolus DFC (Fibrillarin)
 - Nucleolus GC (Nucleophosmin)
@@ -103,7 +108,6 @@ This pipeline includes some basic image diagnostic and analysis tools to get the
 * Diagnostic images: For a quick view of FOV z-stacks, an image of the maximum project along the xy- xz- and yz- axes are rendered in a single image for each z-stacks, including all channels in different colors
 * Channel intensity by z-depth: To display how structure varies across height within a z-stack, and average intensity profile as a function of z is generated for each channel, for each structure; that is, for all FOV's with the same labeled structure, the brightfield, DNA, cell membrane, and structure intensity is averaged across all FOVs at each z-height, and plotted. These intensity profiles may be plotted against the actual z-height, or can be centered relative to the maximum position of the DNA
 
-
 ## Documentation
 For full package documentation please visit [AllenCellModeling.github.io/fov_processing_pipeline](https://AllenCellModeling.github.io/fov_processing_pipeline).
 
@@ -111,4 +115,3 @@ For full package documentation please visit [AllenCellModeling.github.io/fov_pro
 See [CONTRIBUTING.md](CONTRIBUTING.md) for information related to developing the code.
 
 ***Free software: Allen Institute Software License***
-

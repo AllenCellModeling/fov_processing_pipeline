@@ -46,6 +46,13 @@ interactive_requirements = [
     "lkaccess",
 ]
 
+distributed_requirements = [
+    "dask",
+    "dask_jobqueue",
+    "bokeh",
+    "fsspec",
+]
+
 requirements = [
     "pandas",
     "tifffile==0.15.1",
@@ -54,6 +61,7 @@ requirements = [
     "matplotlib",
     "aicsimageio",
     "scikit-learn",
+    "prefect",
 ]
 
 extra_requirements = {
@@ -67,6 +75,7 @@ extra_requirements = {
         *setup_requirements,
         *dev_requirements,
         *interactive_requirements,
+        *distributed_requirements,
     ],
 }
 
@@ -83,7 +92,10 @@ setup(
     ],
     description="Pipeline tools for analyzing FOVs",
     entry_points={
-        "console_scripts": ["fpp_process=fov_processing_pipeline.bin.process:main"],
+        "console_scripts": [
+            "fpp_process=fov_processing_pipeline.bin.process:main",
+            "fpp_scheduler=fov_processing_pipeline.bin.distributed_scheduler:main",
+        ],
     },
     install_requires=requirements,
     license="Allen Institute Software License",
