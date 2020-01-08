@@ -256,9 +256,9 @@ def qc_stats(df_stats, save_path):
         Same dataframe, with aberrant FOVs removed and zstacks interpolated to have the same number of z slices.
         Saved as a .pickle as well.
     """
+
     df_stats = postprocess.fov_qc(df_stats)
     df_stats = postprocess.zsize_qc(df_stats)
-
     df_stats.to_pickle(save_path)
 
     return df_stats
