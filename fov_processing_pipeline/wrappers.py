@@ -227,22 +227,25 @@ def im2diagnostics(fov_data, proj_paths, diagnostics_dir, overwrite=False):
     )
 
 
-def qc_stats(df_stats):
+def qc_stats(df_stats, save_dir):
     """
-    Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the brightfield channel at the bottom of the image.
-    This is an indicator of a slice being out of order, and we want to QC these out of our list. Then use interpolation to make sure all zslice data has the same 
-    number of z measurements.
+    Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the
+    brightfield channel at the bottom of the image. This is an indicator of a slice being out of order, and we want
+    to QC these out of our list. Then use interpolation to make sure all zslice data has the same # of z measurements.
 
     Parameters
     ----------
     df: Dataframe
-        A stats dataframe, containing rows corresponding to FOVs, and having a column with the mean intensity for the DNA channel, for each zslice in each FOV
+        A stats dataframe, containing rows corresponding to FOVs, and having a column with the mean intensity for the
+        DNA channel, for each zslice in each FOV.
     Returns
     -------
     df: Dataframe
-        Same dataframe, with aberrant FOVs removed and zstacks interpolated to have the same number of z slices. Saved as a .pickle as well.
+        Same dataframe, with aberrant FOVs removed and zstacks interpolated to have the same number of z slices.
+        Saved as a .pickle as well.
     """
+
     df_stats = postprocess.fov_qc(df_stats)
     df_stats = postprocess.zsize_qc(df_stats)
-    df_stats.to_pickle("{}/fov_stats.pkl".format(p.save_dir))
+    df_stats.to_pickle("{}/fov_stats.pkl".format(save_dir))
     return df_stats
