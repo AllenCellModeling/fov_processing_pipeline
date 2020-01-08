@@ -240,7 +240,7 @@ def im2diagnostics(fov_data, proj_paths, save_dir, overwrite=False):
 
 @task
 def qc_stats(df_stats, save_path):
-   """
+    """
     Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the
     brightfield channel at the bottom of the image. This is an indicator of a slice being out of order, and we want
     to QC these out of our list. Then use interpolation to make sure all zslice data has the same # of z measurements.
