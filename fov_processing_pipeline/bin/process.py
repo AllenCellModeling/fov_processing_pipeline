@@ -88,7 +88,7 @@ def main():
 
     # load, qc, and save stats from each FOV
     df_stats = wrappers.load_stats(fov_data, stats_paths)
-    df_stats = wrappers.qc_stats(df_stats)
+    df_stats = wrappers.qc_stats(df_stats, p.save_dir)
 
     # make plots from those stats
     wrappers.stats2plots(df_stats, save_dir="{}/stats_plots".format(p.save_dir))
