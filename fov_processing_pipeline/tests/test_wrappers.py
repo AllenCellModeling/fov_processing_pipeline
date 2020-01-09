@@ -59,6 +59,6 @@ def test_save_load_data(demo_cell_data, demo_fov_data, tmpdir):
     #     "fov_processing_pipeline.data.get_data", side_effect=dummy_get_data
     # ):
 
-    with mock.patch("fov_processing_pipeline.data.get_data") as mocked_get_data:
+    with mock.patch("fov_processing_pipeline.data.quilt.get_data") as mocked_get_data:
         mocked_get_data.return_value = (demo_cell_data, demo_fov_data)
         cell_data, fov_data = wrappers.save_load_data.run(tmpdir, overwrite=True)

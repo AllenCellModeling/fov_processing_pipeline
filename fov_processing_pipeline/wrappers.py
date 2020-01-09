@@ -10,6 +10,61 @@ from . import data, utils, stats, reports, postprocess
 
 
 @task
+def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"):
+    """
+    Retreives or loads data.
+
+    Parameters
+    ----------
+    save_dir: str
+        save directory of results
+
+    trim_data: bool or int
+        do we trim the data or not, or how many data to we trim the dataset to
+
+    overwrite: bool
+        do we overwrite the files if they exist? (i.e. do you want to put new results in an old directory)
+    
+    dataset: str
+        can be "quilt" or "labkey"
+
+    Returns
+    -------
+    cell_data: pandas.DataFrame
+        Dataframe where each row corresponds to a single cell
+
+    fov_data: pandas.DataFrame
+        Dataframe where each row corresponds to an FOV
+
+    """
+
+    cell_data_path = "{}/cell_data.csv".format(save_dir)
+    fov_data_path = "{}/fov_data.csv".format(save_dir)
+
+    if not os.path.exists(cell_data_path) or overwrite:
+
+        import pdb
+        pdb.set_trace
+
+        if dataset == 'labkey':
+            cell_data, fov_data = data.labkey.get_data(protein_list=protein_list, n_fovs=n_fovs)
+        elif dataset == 'quilt':
+            image_dir = "{}/images".format(save_dir)
+            cell_data, fov_data = data.quilt.get_data(save_dir = image_dir, protein_list=protein_list, n_fovs=n_fovs, overwrite=overwrite)
+        else:
+            raise ValueError("unrecognized dataset parameter \"{}\"".format(dataset))
+
+        cell_data.to_csv(cell_data_path)
+        fov_data.to_csv(fov_data_path)
+
+    else:
+        cell_data = pd.read_csv(cell_data_path)
+        fov_data = pd.read_csv(fov_data_path)
+
+    return cell_data, fov_data
+
+
+@task
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
     # take a dataframe row and returns an image in CZYX format with channels in desired order
     # Default order is: Brightfield, DNA, Membrane, Structure
@@ -33,7 +88,9 @@ def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
 
 @task
 def cell_data_to_summary_table(cell_data, summary_path):
-    reports.cell_data_to_summary_table(cell_data, summary_path)
+    cell_line_summary_table = reports.cell_data_to_summary_table(cell_data)
+
+    cell_line_summary_table.to_csv(summary_path)
 
 
 @task
@@ -166,31 +223,6 @@ def stats2plots(df_stats: pd.DataFrame, save_dir: str):
         save_dir,
         labels=df_stats["ProteinDisplayName"],
     )
-
-
-@task
-def save_load_data(save_dir, trim_data=False, overwrite=False):
-    # Wrapper function to retreive local copy of the pipeline4 dataframes or go retreive it
-    #
-    # save_dir - directory in which data is saved
-    # trim_data - use a canned data subset
-    # overwrite - overwrite local data
-
-    cell_data_path = "{}/cell_data.csv".format(save_dir)
-    fov_data_path = "{}/fov_data.csv".format(save_dir)
-
-    if not os.path.exists(cell_data_path) or overwrite:
-
-        cell_data, fov_data = data.get_data(num_trim_data=trim_data)
-
-        cell_data.to_csv(cell_data_path)
-        fov_data.to_csv(fov_data_path)
-
-    else:
-        cell_data = pd.read_csv(cell_data_path)
-        fov_data = pd.read_csv(fov_data_path)
-
-    return cell_data, fov_data
 
 
 @task

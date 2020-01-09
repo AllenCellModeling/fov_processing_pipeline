@@ -60,10 +60,17 @@ def main():
         help="Save directory for results",
     )
     p.add_argument(
-        "--trim_data",
-        type=int,
-        default=10,
-        help="Trim cleaned data to this number (int) of fov's per cell line.",
+        "--dataset",
+        type=str,
+        default='quilt',
+        help="Which dataset to use, current can be \"quilt\", or \"labkey\"",
+    )
+
+    p.add_argument(
+        "--n_fovs",
+        type=utils.str2bool,
+        default=100,
+        help="Trim cleaned data to a canned subset (True) OR this number (int) of fov's per cell line.",
     )
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
@@ -97,7 +104,6 @@ def main():
     p = p.parse_args()
 
     save_dir = str(Path(p.save_dir).resolve())
-    trim_data = p.trim_data
     overwrite = p.overwrite
     use_current_results = p.use_current_results
 
@@ -126,7 +132,7 @@ def main():
         ###########
         # load data
         ###########
-        data = wrappers.save_load_data(save_dir, trim_data, overwrite)
+        data = wrappers.save_load_data(save_dir, n_fovs= p.n_fovs, overwrite=overwrite, dataset=p.dataset)
 
         # we have to unpack this way because of Prefect-reasons
         cell_data = data[0]
