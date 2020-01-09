@@ -25,8 +25,8 @@ jobs:
       run: |
         pytest --cov-report xml --cov=fov_processing_pipeline fov_processing_pipeline/tests/
         codecov -t ${{ secrets.CODECOV_TOKEN }}
-      env: |
-        CI=True
+      env:
+        CI: True
 
   lint:
     runs-on: ubuntu-latest
