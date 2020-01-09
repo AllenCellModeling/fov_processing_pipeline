@@ -24,6 +24,7 @@ def fov_qc(df):
     df['QC'] = qc
     return df[df['QC']]
 
+
 def zsize_qc(df):
     """
     Given a stats dataframe, use interpolation to make sure all zslice data has the same number of z measurements

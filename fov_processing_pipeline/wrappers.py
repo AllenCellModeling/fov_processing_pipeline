@@ -24,7 +24,7 @@ def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dat
 
     overwrite: bool
         do we overwrite the files if they exist? (i.e. do you want to put new results in an old directory)
-    
+
     dataset: str
         can be "quilt" or "labkey"
 
@@ -50,7 +50,11 @@ def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dat
             cell_data, fov_data = data.labkey.get_data(protein_list=protein_list, n_fovs=n_fovs)
         elif dataset == 'quilt':
             image_dir = "{}/images".format(save_dir)
-            cell_data, fov_data = data.quilt.get_data(save_dir = image_dir, protein_list=protein_list, n_fovs=n_fovs, overwrite=overwrite)
+            cell_data, fov_data = data.quilt.get_data(
+                save_dir=image_dir,
+                protein_list=protein_list,
+                n_fovs=n_fovs,
+                overwrite=overwrite)
         else:
             raise ValueError("unrecognized dataset parameter \"{}\"".format(dataset))
 

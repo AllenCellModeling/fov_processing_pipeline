@@ -3,6 +3,7 @@ import pandas as pd
 
 from ...data import utils
 
+
 def test_cell_data_to_fov_data(demo_cell_data):
     fov_data = utils.cell_data_to_fov_data(demo_cell_data)
 

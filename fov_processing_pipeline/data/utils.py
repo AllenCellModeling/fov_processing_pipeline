@@ -81,6 +81,7 @@ def cell_data_to_fov_data(cell_data):
 
     return fov_data
 
+
 def trim_data_by_cellline_fov_count(df, n_fovs):
 
     ############################################
@@ -136,6 +137,7 @@ def trim_data(df, protein_list=None, n_fovs=100):
         fov_trim = trim_data_by_cellline_fov_count(cell_line_trim, n_fovs)
 
     return fov_trim
+
 
 def clean_cell_data(cell_data: pd.DataFrame, protein_list=None, n_fovs=100):
     cell_data = clean_columns(cell_data)

@@ -4,6 +4,7 @@ import quilt3
 
 from . import utils as data_utils
 
+
 def get_data(save_dir=None, n_fovs=100, protein_list=None, overwrite=False, use_current_results=False):
     """
     Function to pull data from quilt3 and return pandas dataframes containing per-fov and per-cell info
@@ -24,7 +25,7 @@ def get_data(save_dir=None, n_fovs=100, protein_list=None, overwrite=False, use_
 
     use_current_results: bool
         do we skip downloading data, and just use whatever data already present on disc
-    
+
     Returns
     -------
     cell_data: pandas.DataFrame

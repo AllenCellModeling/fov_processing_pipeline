@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import warnings
 
-from ..utils import int2rand
 from . import utils as data_utils
 
 
@@ -110,6 +108,3 @@ def get_data(n_fovs=100, protein_list=None):
     cell_data, fov_data = data_utils.clean_cell_data(cell_data, protein_list=protein_list, n_fovs=n_fovs)
 
     return cell_data, fov_data
-
-
-

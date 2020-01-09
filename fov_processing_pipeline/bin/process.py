@@ -132,7 +132,7 @@ def main():
         ###########
         # load data
         ###########
-        data = wrappers.save_load_data(save_dir, n_fovs= p.n_fovs, overwrite=overwrite, dataset=p.dataset)
+        data = wrappers.save_load_data(save_dir, n_fovs=p.n_fovs, overwrite=overwrite, dataset=p.dataset)
 
         # we have to unpack this way because of Prefect-reasons
         cell_data = data[0]

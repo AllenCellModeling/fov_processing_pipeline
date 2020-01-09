@@ -8,6 +8,7 @@ REQUIRED_COLUMNS = ["ProteinDisplayName", "SourceReadPath", 'FOVId', "CellLine"]
 
 REQUIRED_COLUMNS_CELL = ["CellId"]
 
+
 @pytest.mark.parametrize("data_loader", [quilt, labkey])
 def test_get_data(tmpdir, data_loader):
 
