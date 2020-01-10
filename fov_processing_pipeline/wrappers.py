@@ -43,9 +43,6 @@ def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dat
 
     if not os.path.exists(cell_data_path) or overwrite:
 
-        import pdb
-        pdb.set_trace
-
         if dataset == 'labkey':
             cell_data, fov_data = data.labkey.get_data(protein_list=protein_list, n_fovs=n_fovs)
         elif dataset == 'quilt':
