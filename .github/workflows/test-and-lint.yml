@@ -22,11 +22,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[test]
     - name: Test with pytest
+      env:
+        CI: True
       run: |
         pytest --cov-report xml --cov=fov_processing_pipeline fov_processing_pipeline/tests/
         codecov -t ${{ secrets.CODECOV_TOKEN }}
-      env:
-        CI: True
+
 
   lint:
     runs-on: ubuntu-latest
