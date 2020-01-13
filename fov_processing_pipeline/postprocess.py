@@ -17,12 +17,12 @@ def fov_qc(df):
     qc = []
 
     for i in range(df.shape[0]):
-        vals = df.iloc[i]['Ch1_mean_by_z']
+        vals = df.iloc[i]["Ch1_mean_by_z"]
         ind = np.argmax(vals)
         qc.append(ind != 0)
 
-    df['QC'] = qc
-    return df[df['QC']]
+    df["QC"] = qc
+    return df[df["QC"]]
 
 
 def zsize_qc(df):
@@ -39,7 +39,7 @@ def zsize_qc(df):
     """
 
     # get median number of z slices
-    z_sizes = [len(df.iloc[i]['Ch0_mean_by_z']) for i in range(df.shape[0])]
+    z_sizes = [len(df.iloc[i]["Ch0_mean_by_z"]) for i in range(df.shape[0])]
     set_size = int(np.median(z_sizes))
 
     # cycle through channels to make a new list of values for each channel
@@ -47,8 +47,8 @@ def zsize_qc(df):
         means = []
         stds = []
 
-        col1 = 'Ch'+str(ch)+'_mean_by_z'
-        col2 = 'Ch'+str(ch)+'_std_by_z'
+        col1 = "Ch" + str(ch) + "_mean_by_z"
+        col2 = "Ch" + str(ch) + "_std_by_z"
 
         # for every fov, interpolate z intensity mean and std to same size
         for i in range(df.shape[0]):

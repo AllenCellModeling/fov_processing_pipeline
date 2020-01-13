@@ -62,6 +62,9 @@ requirements = [
     "aicsimageio",
     "scikit-learn",
     "prefect",
+    "quilt3==3.1.8",
+    "python-dateutil<=2.8.0",  # required by quilt3==3.1.8
+    "urllib3<1.25,>=1.21.1",  # required by quilt3==3.1.8
 ]
 
 extra_requirements = {

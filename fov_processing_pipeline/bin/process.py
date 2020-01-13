@@ -6,7 +6,7 @@ import logging
 import os
 from pathlib import Path
 
-from prefect import task, Flow
+from prefect import task, Flow, unmapped
 
 from fov_processing_pipeline import wrappers, utils
 
@@ -60,10 +60,14 @@ def main():
         help="Save directory for results",
     )
     p.add_argument(
-        "--trim_data",
-        type=int,
-        default=10,
-        help="Trim cleaned data to this number (int) of fov's per cell line.",
+        "--dataset",
+        type=str,
+        default="quilt",
+        help='Which dataset to use, current can be "quilt", or "labkey"',
+    )
+
+    p.add_argument(
+        "--n_fovs", type=int, default=100, help="Number of fov's per cell line to use.",
     )
     p.add_argument(
         "--overwrite", type=utils.str2bool, default=False, help="overwite saved results"
@@ -71,8 +75,8 @@ def main():
     p.add_argument(
         "--use_current_results",
         type=utils.str2bool,
-        default=False,
-        help="dont do any processing. just make figures.",
+        default=True,
+        help="Dont do any processing. just make figures. Set to True by default so you don't overwrite your stuff.",
     )
     p.add_argument(
         "--debug",
@@ -97,7 +101,6 @@ def main():
     p = p.parse_args()
 
     save_dir = str(Path(p.save_dir).resolve())
-    trim_data = p.trim_data
     overwrite = p.overwrite
     use_current_results = p.use_current_results
 
@@ -126,7 +129,9 @@ def main():
         ###########
         # load data
         ###########
-        data = wrappers.save_load_data(save_dir, trim_data, overwrite)
+        data = wrappers.save_load_data(
+            save_dir, n_fovs=p.n_fovs, overwrite=overwrite, dataset=p.dataset
+        )
 
         # we have to unpack this way because of Prefect-reasons
         cell_data = data[0]
@@ -150,7 +155,7 @@ def main():
         wrappers.cell_data_to_summary_table(cell_data, summary_path)
 
         ###########
-        # The bit per-fov map step
+        # The per-fov map step
         ###########
         fov_rows = get_data_rows(fov_data)
 
@@ -159,7 +164,7 @@ def main():
                 fov_row=fov_rows,
                 stats_path=stats_paths,
                 proj_path=proj_paths,
-                overwrite=overwrite,
+                overwrite=unmapped(overwrite),
             )
             upstream_tasks = [process_fov_row_map]
         else:
@@ -193,7 +198,7 @@ def main():
 
     state = flow.run(executor=executor)
 
-    df_stats = state.result[flow.get_tasks(name="load_stats_fn")[0]].result
+    df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result
 
     log.info("Done!")
 
