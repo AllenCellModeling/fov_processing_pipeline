@@ -6,11 +6,7 @@ import numpy as np
 
 from ..utils import int2rand
 
-REQUIRED_COLUMNS = [
-    "ProteinDisplayName",
-    "CellLine",
-    "FOVId"
-]
+REQUIRED_COLUMNS = ["ProteinDisplayName", "CellLine", "FOVId"]
 
 
 def clean_columns(cell_data):

@@ -5,7 +5,13 @@ import quilt3
 from . import utils as data_utils
 
 
-def get_data(save_dir=None, n_fovs=100, protein_list=None, overwrite=False, use_current_results=False):
+def get_data(
+    save_dir=None,
+    n_fovs=100,
+    protein_list=None,
+    overwrite=False,
+    use_current_results=False,
+):
     """
     Function to pull data from quilt3 and return pandas dataframes containing per-fov and per-cell info
 
@@ -41,27 +47,41 @@ def get_data(save_dir=None, n_fovs=100, protein_list=None, overwrite=False, use_
 
     metadata_fn = aics_pipeline["metadata.csv"]
 
-    cell_data = metadata_fn() # noqa
+    cell_data = metadata_fn()  # noqa
 
-    cell_data, fov_data = data_utils.clean_cell_data(cell_data, protein_list=protein_list, n_fovs=n_fovs)
+    image_source_paths = cell_data[
+        "SourceReadPath"
+    ]  # this is where the data lives in the quilt repo
 
-    if save_dir is not None:
+    image_target_paths = [  # this is where the data should live
+        "{}/{}".format(save_dir, image_source_path)
+        for image_source_path in image_source_paths
+    ]
 
-        image_source_paths = fov_data["SourceReadPath"]
+    cell_data[
+        "SourceReadPath_quilt"
+    ] = image_source_paths  # store the quilt location infomation
+    cell_data[
+        "SourceReadPath"
+    ] = image_target_paths  # store the local location infomation
 
-        image_target_paths = [
-            "{}/{}".format(save_dir, image_source_path) for image_source_path in image_source_paths
-        ]
+    # clean the data up
+    cell_data, fov_data = data_utils.clean_cell_data(
+        cell_data, protein_list=protein_list, n_fovs=n_fovs
+    )
 
-        if not use_current_results:
-            for image_source_path, image_target_path in zip(image_source_paths, image_target_paths):
-                if os.path.exists(image_target_path) and not overwrite:
-                    continue
+    # now use the unique paths from the cell_data to copy over everything to the right location
+    if not use_current_results:
+        for image_source_path, image_target_path in zip(
+            fov_data["SourceReadPath_quilt"], fov_data["SourceReadPath"]
+        ):
+            if os.path.exists(image_target_path) and not overwrite:
+                continue
 
-                # We only do this because T4 hates our filesystem. It probably wont affect you.
-                try:
-                    aics_pipeline[image_source_path].fetch(image_target_path)
-                except OSError:
-                    pass
+            # We only do this because T4 hates our filesystem. It probably wont affect you.
+            try:
+                aics_pipeline[image_source_path].fetch(image_target_path)
+            except OSError:
+                pass
 
     return cell_data, fov_data

@@ -36,14 +36,14 @@ def demo_fov_row(demo_fov_data):
 
 @pytest.fixture
 def demo_row_image(demo_fov_row):
-    return wrappers.row2im.run(demo_fov_row)[0]
+    return wrappers.row2im(demo_fov_row)[0]
 
 
 @pytest.fixture
 def demo_df_stats(demo_fov_data):
     all_stats = list()
     for i in range(demo_fov_data.shape[0]):
-        im = wrappers.row2im.run(demo_fov_data.iloc[i])[0]
-        stats = wrappers.im2stats.run(im)
+        im = wrappers.row2im(demo_fov_data.iloc[i])[0]
+        stats = wrappers.im2stats(im)
         all_stats.append(stats)
     return pd.concat(all_stats, axis=1)

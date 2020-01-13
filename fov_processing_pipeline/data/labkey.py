@@ -105,6 +105,8 @@ def get_data(n_fovs=100, protein_list=None):
 
     cell_data = get_cell_data()
 
-    cell_data, fov_data = data_utils.clean_cell_data(cell_data, protein_list=protein_list, n_fovs=n_fovs)
+    cell_data, fov_data = data_utils.clean_cell_data(
+        cell_data, protein_list=protein_list, n_fovs=n_fovs
+    )
 
     return cell_data, fov_data

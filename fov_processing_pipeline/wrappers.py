@@ -9,8 +9,59 @@ from prefect import task
 from . import data, utils, stats, reports, postprocess
 
 
+def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
+    # take a dataframe row and returns an image in CZYX format with channels in desired order
+    # Default order is: Brightfield, DNA, Membrane, Structure
+    #
+    # load all channels of all z-stacks and transpose to order: c, y, x, z
+    im = imread(df_row.SourceReadPath).squeeze()
+    im = np.transpose(im, [0, 2, 3, 1])
+
+    ch2ind = dict(
+        {
+            "BF": df_row["ChannelNumberBrightfield"],
+            "DNA": df_row["ChannelNumber405"],
+            "Cell": df_row["ChannelNumber638"],
+            "Struct": df_row["ChannelNumberStruct"],
+        }
+    )
+    ch_reorg = [int(ch2ind[ch]) for ch in ch_order]
+
+    return im[ch_reorg, :, :, :], ch_order
+
+
+def im2stats(im):
+    ############################################
+    # For a given image, calculate some basic statistcs and return as dictionary
+    # Inputs:
+    #   - im: CYXZ image, numpy array
+    # Returns:
+    #   - results: dictionary of all calculated statics for the image
+    ############################################
+
+    # create dictionary to fill
+    results = list()
+
+    # get intensity stats as a function of z slices for all channels
+    for c in range(im.shape[0]):
+
+        results.append(stats.z_intensity_stats(im, c))
+        results.append(stats.intensity_percentiles_by_channel(im, c))
+
+    results.append(stats.z_intensity_profile.im2stats(im))
+
+    results = pd.concat(results, axis=1)
+
+    # get structure to cell and dna cross correlations
+    # stats.update(cross_correlations(im))
+
+    return results
+
+
 @task
-def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"):
+def save_load_data(
+    save_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"
+):
     """
     Retreives or loads data.
 
@@ -43,17 +94,20 @@ def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dat
 
     if not os.path.exists(cell_data_path) or overwrite:
 
-        if dataset == 'labkey':
-            cell_data, fov_data = data.labkey.get_data(protein_list=protein_list, n_fovs=n_fovs)
-        elif dataset == 'quilt':
+        if dataset == "labkey":
+            cell_data, fov_data = data.labkey.get_data(
+                protein_list=protein_list, n_fovs=n_fovs
+            )
+        elif dataset == "quilt":
             image_dir = "{}/images".format(save_dir)
             cell_data, fov_data = data.quilt.get_data(
                 save_dir=image_dir,
                 protein_list=protein_list,
                 n_fovs=n_fovs,
-                overwrite=overwrite)
+                overwrite=overwrite,
+            )
         else:
-            raise ValueError("unrecognized dataset parameter \"{}\"".format(dataset))
+            raise ValueError('unrecognized dataset parameter "{}"'.format(dataset))
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -66,61 +120,10 @@ def save_load_data(save_dir, protein_list=None, n_fovs=100, overwrite=False, dat
 
 
 @task
-def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
-    # take a dataframe row and returns an image in CZYX format with channels in desired order
-    # Default order is: Brightfield, DNA, Membrane, Structure
-    #
-    # load all channels of all z-stacks and transpose to order: c, y, x, z
-    im = imread(df_row.SourceReadPath).squeeze()
-    im = np.transpose(im, [0, 2, 3, 1])
-
-    ch2ind = dict(
-        {
-            "BF": df_row["ChannelNumberBrightfield"],
-            "DNA": df_row["ChannelNumber405"],
-            "Cell": df_row["ChannelNumber638"],
-            "Struct": df_row["ChannelNumberStruct"],
-        }
-    )
-    ch_reorg = [int(ch2ind[ch]) for ch in ch_order]
-
-    return im[ch_reorg, :, :, :], ch_order
-
-
-@task
 def cell_data_to_summary_table(cell_data, summary_path):
     cell_line_summary_table = reports.cell_data_to_summary_table(cell_data)
 
     cell_line_summary_table.to_csv(summary_path)
-
-
-@task
-def im2stats(im):
-    ############################################
-    # For a given image, calculate some basic statistcs and return as dictionary
-    # Inputs:
-    #   - im: CYXZ image, numpy array
-    # Returns:
-    #   - results: dictionary of all calculated statics for the image
-    ############################################
-
-    # create dictionary to fill
-    results = list()
-
-    # get intensity stats as a function of z slices for all channels
-    for c in range(im.shape[0]):
-
-        results.append(stats.z_intensity_stats(im, c))
-        results.append(stats.intensity_percentiles_by_channel(im, c))
-
-    results.append(stats.z_intensity_profile.im2stats(im))
-
-    results = pd.concat(results, axis=1)
-
-    # get structure to cell and dna cross correlations
-    # stats.update(cross_correlations(im))
-
-    return results
 
 
 @task

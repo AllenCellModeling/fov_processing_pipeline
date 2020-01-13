@@ -4,7 +4,7 @@ import warnings
 
 from ...data import quilt, labkey
 
-REQUIRED_COLUMNS = ["ProteinDisplayName", "SourceReadPath", 'FOVId', "CellLine"]
+REQUIRED_COLUMNS = ["ProteinDisplayName", "SourceReadPath", "FOVId", "CellLine"]
 
 REQUIRED_COLUMNS_CELL = ["CellId"]
 
@@ -13,8 +13,10 @@ REQUIRED_COLUMNS_CELL = ["CellId"]
 def test_get_data(tmpdir, data_loader):
 
     # If we're somewhere other than AICS infrastructure, labkey access doesn't work, so we just pass
-    if 'CI' in os.environ and os.environ['CI'] and data_loader == labkey:
-        warnings.warn("Ignoring this test as it works only on AICS specific infrastructure")
+    if "CI" in os.environ and os.environ["CI"] and data_loader == labkey:
+        warnings.warn(
+            "Ignoring this test as it works only on AICS specific infrastructure"
+        )
         assert True
         return
 

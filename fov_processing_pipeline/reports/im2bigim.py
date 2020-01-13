@@ -63,7 +63,7 @@ def im2bigim(impaths, im_ids, labels, save_parent_dir, nwide=5, ndeep=50, verbos
             )
 
         im_list = [
-            np.hstack(im_list[start: (start + nwide)])
+            np.hstack(im_list[start : (start + nwide)])  # noqa
             for start in range(0, len(im_list), nwide)
         ]
 
@@ -72,7 +72,7 @@ def im2bigim(impaths, im_ids, labels, save_parent_dir, nwide=5, ndeep=50, verbos
 
         c = 0
         for i in range(0, len(im_list), ndeep):
-            im_out = np.vstack(im_list[i: (i + ndeep)]).astype("uint8")
+            im_out = np.vstack(im_list[i : (i + ndeep)]).astype("uint8")  # noqa
 
             im_out = im_out.transpose([2, 1, 0])
 
