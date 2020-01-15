@@ -201,21 +201,27 @@ def main():
             fov_data, proj_paths, save_dir=diagnostics_dir, upstream_tasks=[df_stats]
         )
 
-    # Create the project if deploy or cloud marked true
-    if p.deploy or p.cloud:
+    # Check for deploy
+    if p.deploy:
         # Connect to cloud client
         from prefect import Client
 
         # Connect to client and create project
         c = Client()
-        c.create_project("FOV Processing Pipeline")
 
-    # Check for deploy
-    if p.deploy:
+        # Create the project and register the flow
+        c.create_project("FOV Processing Pipeline")
         flow.register(project_name="FOV Processing Pipeline")
 
     # Check for how to run
     if p.cloud:
+        # Connect to cloud client
+        from prefect import Client
+
+        # Connect to client and create project
+        c = Client()
+
+        # Configure remote environment
         from prefect.environments import RemoteEnvironment
         flow.environment = RemoteEnvironment(
             executor="prefect.engine.executors.DaskExecutor",
@@ -224,14 +230,14 @@ def main():
             }
         )
 
-        # Get run agent
-        flow.run_agent()
-
         # Log that the UI should be available
         log.info(
             f"Go to: https://cloud.prefect.io/allencellmodeling/flow/60d2bb56-5832-4c66-afa0-838f0c30431b "
             f"to start and monitor the workflow run."
         )
+
+        # Start runner
+        flow.run_agent()
 
     # Otherwise run local
     else:
