@@ -6,10 +6,9 @@ import logging
 import os
 from pathlib import Path
 
-from prefect import task, Flow, unmapped
+from prefect import Flow, Parameter, task, unmapped
 
-from fov_processing_pipeline import wrappers, utils
-
+from fov_processing_pipeline import utils, wrappers
 
 ###############################################################################
 
@@ -97,6 +96,19 @@ def main():
         default=99999,
         help="Port over which to communicate with the Dask scheduler.",
     )
+    # prefect cloud stuff
+    p.add_argument(
+        "--deploy",
+        type=utils.str2bool,
+        default=False,
+        help="Deploy this version of the flow to Prefect Cloud. Set to False by default."
+    )
+    p.add_argument(
+        "--cloud",
+        type=utils.str2bool,
+        default=False,
+        help="Launch Prefect Cloud Runner. Set to False by default."
+    )
 
     p = p.parse_args()
 
@@ -111,26 +123,19 @@ def main():
 
     # https://github.com/AllenCellModeling/scheduler_tools/blob/master/remote_job_scheduling.md
 
-    if p.distributed:
-        from prefect.engine.executors import DaskExecutor
-
-        executor = DaskExecutor(
-            address="tcp://localhost:{PORT}".format(**{"PORT": p.port})
-        )
-    else:
-        from prefect.engine.executors import LocalExecutor
-
-        executor = LocalExecutor()
-
     # This is the main function
     with Flow("FOV_processing_pipeline") as flow:
         # for every FOV, do the processing steps
+        n_fovs = Parameter("n_fovs")
+        save_dir = Parameter("save_dir", default="/allen/aics/modeling/jacksonb/cloud/")
+        overwrite = Parameter("overwrite", default=True)
+        dataset = Parameter("dataset", default="quilt")
 
         ###########
         # load data
         ###########
         data = wrappers.save_load_data(
-            save_dir, n_fovs=p.n_fovs, overwrite=overwrite, dataset=p.dataset
+            save_dir, n_fovs=n_fovs, overwrite=overwrite, dataset=dataset
         )
 
         # we have to unpack this way because of Prefect-reasons
@@ -180,7 +185,7 @@ def main():
         ###########
         # QC data based on previous thresholds, etc
         ###########
-        df_stats = wrappers.qc_stats(df_stats, "{}/fov_stats_qc.pkl".format(p.save_dir))
+        df_stats = wrappers.qc_stats(df_stats, "{}/fov_stats_qc.pkl".format(save_dir))
 
         ###########
         # Make Plots
@@ -196,9 +201,59 @@ def main():
             fov_data, proj_paths, save_dir=diagnostics_dir, upstream_tasks=[df_stats]
         )
 
-    state = flow.run(executor=executor)
+    # Create the project if deploy or cloud marked true
+    if p.deploy or p.cloud:
+        # Connect to cloud client
+        from prefect import Client
 
-    df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result
+        # Connect to client and create project
+        c = Client()
+        c.create_project("FOV Processing Pipeline")
+
+    # Check for deploy
+    if p.deploy:
+        flow.register(project_name="FOV Processing Pipeline")
+
+    # Check for how to run
+    if p.cloud:
+        from prefect.environments import RemoteEnvironment
+        flow.environment = RemoteEnvironment(
+            executor="prefect.engine.executors.DaskExecutor",
+            executor_kwargs={
+                "address": f"tcp://localhost:{p.port}"
+            }
+        )
+
+        # Get run agent
+        flow.run_agent()
+
+        # Log that the UI should be available
+        log.info(
+            f"Go to: https://cloud.prefect.io/allencellmodeling/flow/60d2bb56-5832-4c66-afa0-838f0c30431b "
+            f"to start and monitor the workflow run."
+        )
+
+    # Otherwise run local
+    else:
+        if p.distributed:
+            from prefect.engine.executors import DaskExecutor
+
+            executor = DaskExecutor(
+                address=f"tcp://localhost:{p.port}"
+            )
+        else:
+            from prefect.engine.executors import LocalExecutor
+
+            executor = LocalExecutor()
+
+        state = flow.run(executor=executor, parameters={
+            "n_fovs": p.n_fovs,
+            "save_dir": str(Path(p.save_dir).resolve()),
+            "overwrite": p.overwrite,
+            "dataset": p.dataset
+        })
+
+        df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result
 
     log.info("Done!")
 
