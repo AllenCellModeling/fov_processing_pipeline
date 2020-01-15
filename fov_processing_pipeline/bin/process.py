@@ -204,16 +204,22 @@ def main():
     # Check for deploy
     if p.deploy:
         # Connect to cloud client
-        from prefect import Client
+        from prefect import Client, utilities
 
         # Connect to client and create project
         c = Client()
 
-        # Create the project and register the flow
-        c.create_project("FOV Processing Pipeline")
+        # Create the project if not existing
+        try:
+            c.create_project("FOV Processing Pipeline")
+        except utilities.exceptions.ClientError:
+            pass
+
+        # Register flow
         flow.register(project_name="FOV Processing Pipeline")
 
     # Check for how to run
+    # Start the cloud runner
     if p.cloud:
         # Connect to cloud client
         from prefect import Client

@@ -6,9 +6,9 @@ import logging
 import socket
 import time
 
-from dask_jobqueue import SLURMCluster
 import dask
 import dask.distributed
+from dask_jobqueue import SLURMCluster
 
 ###############################################################################
 
@@ -26,7 +26,7 @@ def main():
     p = argparse.ArgumentParser(prog="process", description="Process the FOV pipeline")
 
     p.add_argument(
-        "--min_jobs", type=int, default=300, help="Minimum number of jobs to use",
+        "--min_jobs", type=int, default=4, help="Minimum number of jobs to use",
     )
 
     p.add_argument(
@@ -71,8 +71,11 @@ def main():
     )
     log.info(connection_str)
     log.info(" ")
-    log.info("Then use the following command to kick off your FPP jobs:")
+    log.info("Then use the following command to kick off your FPP jobs with core:")
     log.info("fpp_process --distributed 1 --port {PORT}".format(**connection_info))
+    log.info(" ")
+    log.info("Or use the following command to kick off your FPP jobs with cloud:")
+    log.info("fpp_process --deploy y --cloud y --port {PORT}".format(**connection_info))
     log.info(" ")
     log.info("You can see the dashboard on:")
     log.info("localhost:{PORT}".format(**connection_info))
