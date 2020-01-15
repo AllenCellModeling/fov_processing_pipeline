@@ -72,6 +72,7 @@ extra_requirements = {
     "setup": setup_requirements,
     "dev": dev_requirements,
     "interactive": interactive_requirements,
+    "distributed": distributed_requirements,
     "all": [
         *requirements,
         *test_requirements,
