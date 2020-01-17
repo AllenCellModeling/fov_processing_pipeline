@@ -97,7 +97,7 @@ def test_data_splits(demo_fov_data, tmpdir):
     assert len(splits_dict) == len(np.unique(demo_fov_data["ProteinDisplayName"]))
 
     inds_list = list()
-    # confirm that there are
+    # confirm that there there is content for all split names and groups
     for u_group in u_groups:
         assert u_group in splits_dict
 

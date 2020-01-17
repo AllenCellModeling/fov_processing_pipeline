@@ -311,8 +311,8 @@ def data_splits(
     split_column="FOVId_rng",
 ):
     """
-    Given a stats dataframe, split each unique entry of `group_column` into train and test groups based on the `split_column random number, and save
-    those results in `save_dir` with the f"{save_dir}/{unique_group_column}_{train_or_test}.csv"
+    Given a stats dataframe, split each unique entry of `group_column` into groups based on the `split_column random
+    number, and save those results in `save_dir` with the f"{save_dir}/{unique_group_column}_{train_or_test}.csv"
 
     Parameters
     ----------
@@ -323,7 +323,7 @@ def data_splits(
         Save directory for splits files
 
     split_names: list of strs
-        Names of the splits  
+        Names of the splits
 
     split_amounts: list of floats
         Fraction of data split that corresponds to split names.
