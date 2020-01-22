@@ -40,7 +40,7 @@ def intensity_percentiles_by_channel(im, c, percentile_list=[5, 25, 50, 75, 95])
     #   - c: channel number, int
     #   - percentile_list: list of desired percentiles of channel pixel intensities, list
     # Returns:
-    #   - Dictionary containing the desired percentile intensities for the desired channel
+    #   - Dataframe containing the desired percentile intensities for the desired channel
     ############################################
 
     imvals = im[c, :, :, :].flatten()
