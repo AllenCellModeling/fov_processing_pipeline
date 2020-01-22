@@ -42,11 +42,12 @@ def im2stats(im):
     # create dictionary to fill
     results = list()
 
-    # get intensity stats as a function of z slices for all channels
+    # get intensity stats as a function of channel
     for c in range(im.shape[0]):
 
         results.append(stats.z_intensity_stats(im, c))
         results.append(stats.intensity_percentiles_by_channel(im, c))
+        results.append(stats.histogram_stats.im2stats(im, c))
 
     results.append(stats.z_intensity_profile.im2stats(im))
 
