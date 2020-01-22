@@ -55,6 +55,7 @@ distributed_requirements = [
 
 requirements = [
     "pandas",
+    "numpy",
     "tifffile==0.15.1",
     "matplotlib",
     "jupyterlab",
