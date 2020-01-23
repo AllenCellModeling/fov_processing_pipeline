@@ -1,12 +1,13 @@
 import os
-import warnings
-import pandas as pd
 import pickle
+import warnings
+
 import numpy as np
+import pandas as pd
 from aicsimageio import imread, writers
 from prefect import task
 
-from . import data, utils, stats, reports, postprocess
+from . import data, postprocess, reports, stats, utils
 
 
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
@@ -58,7 +59,7 @@ def im2stats(im):
     return results
 
 
-@task
+@task(tags=["dask-resource:cores=32"])
 def save_load_data(
     save_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"
 ):
