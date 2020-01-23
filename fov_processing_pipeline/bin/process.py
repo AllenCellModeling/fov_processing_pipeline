@@ -126,7 +126,7 @@ def main():
     # This is the main function
     with Flow("FOV_processing_pipeline") as flow:
         # for every FOV, do the processing steps
-        n_fovs = Parameter("n_fovs")
+        n_fovs = Parameter("n_fovs", default=100)
         save_dir = Parameter("save_dir", default="/allen/aics/modeling/jacksonb/cloud/")
         overwrite = Parameter("overwrite", default=True)
         dataset = Parameter("dataset", default="quilt")
