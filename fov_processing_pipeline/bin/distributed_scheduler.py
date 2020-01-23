@@ -78,7 +78,7 @@ def main():
     log.info("fpp_process --deploy y --cloud y --port {PORT}".format(**connection_info))
     log.info(" ")
     log.info("You can see the dashboard on:")
-    log.info("localhost:{PORT}".format(**connection_info))
+    log.info("localhost:{DASHBOARD_PORT}".format(**connection_info))
     log.info(" ")
     log.info("Command + C will teardown the server.")
 
