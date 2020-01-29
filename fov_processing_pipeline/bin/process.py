@@ -196,6 +196,13 @@ def main():
             fov_data, proj_paths, save_dir=diagnostics_dir, upstream_tasks=[df_stats]
         )
 
+        ###########
+        # Do data splits for the data that survived QC
+        ###########
+        wrappers.data_splits(
+            df_stats, save_dir=f"{save_dir}/data_splits", upstream_tasks=[df_stats]
+        )
+
     state = flow.run(executor=executor)
 
     df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result

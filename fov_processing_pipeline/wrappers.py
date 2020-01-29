@@ -170,6 +170,7 @@ def load_stats(df, stats_paths):
                 stats = pickle.load(f)
 
             stats["FOVId"] = df["FOVId"].iloc[i]
+            stats["FOVId_rng"] = df["FOVId_rng"].iloc[i]
             stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
             stats_list.append(stats)
         else:
@@ -298,3 +299,96 @@ def qc_stats(df_stats, save_path):
     df_stats.to_pickle(save_path)
 
     return df_stats
+
+
+@task
+def data_splits(
+    df_stats,
+    save_dir,
+    split_names=["train", "validate", "test"],
+    split_amounts=[0.8, 0.1, 0.1],
+    group_column="ProteinDisplayName",
+    split_column="FOVId_rng",
+):
+    """
+    Given a stats dataframe, split each unique entry of `group_column` into groups based on the `split_column random
+    number, and save those results in `save_dir` with the f"{save_dir}/{unique_group_column}_{train_or_test}.csv"
+
+    Parameters
+    ----------
+    df_stats: Dataframe
+        A stats dataframe with the columns corresponding to `group_column` and `split_column`
+
+    save_dir: str
+        Save directory for splits files
+
+    split_names: list of strs
+        Names of the splits
+
+    split_amounts: list of floats
+        Fraction of data split that corresponds to split names.
+        Must be same length as split names and sum to 1.
+
+    group_column: str
+        Column over which to create cohorts that we split up
+
+    split_column: str
+        Column with values that we split in. All values must be in the range of [0, 1). See: numpy.random.rand
+
+    Returns
+    -------
+    splits_dict
+        A dictionary corresponding to split groups, split names, and the save file
+    """
+
+    # all these assertions should probably be raise.ValueError
+
+    # check for correct input
+    assert np.sum(split_amounts) == 1
+    assert isinstance(group_column, str)
+    assert isinstance(split_column, str)
+    assert len(split_names) == len(split_amounts)
+
+    assert group_column in df_stats.columns
+    assert split_column in df_stats.columns
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    if group_column is not None:
+        group = df_stats[group_column].values
+    else:
+        group = np.zeros(df_stats.shape[0])
+
+    split_amounts = np.hstack([[0], split_amounts])
+    split_amounts = np.cumsum(split_amounts)
+
+    values_to_split_on = df_stats[split_column].values
+    assert np.all(values_to_split_on >= 0)
+    assert np.all(values_to_split_on < 1)
+
+    splits = np.ones(df_stats.shape[0]) * -1
+    for i, (lb, hb) in enumerate(zip(split_amounts[0:-1], split_amounts[1::])):
+        splits[(values_to_split_on >= lb) & (values_to_split_on < hb)] = i
+
+    assert np.max(splits) <= (len(split_names) - 1)
+    assert not np.any(splits == -1)
+
+    splits_dict = {}
+
+    for u_group in np.unique(group):
+        u_group_inds = group == u_group
+
+        splits_dict[u_group] = {}
+
+        for i, split_name in enumerate(split_names):
+            split_inds = (splits == i) & u_group_inds
+
+            save_path = f"{save_dir}/{u_group}_{split_name}.csv"
+            df_stats.iloc[split_inds].to_csv(save_path)
+
+            splits_dict[u_group][split_name] = {}
+            splits_dict[u_group][split_name]["save_path"] = save_path
+            splits_dict[u_group][split_name]["split_inds"] = np.where(split_inds)[0]
+
+    return splits_dict
