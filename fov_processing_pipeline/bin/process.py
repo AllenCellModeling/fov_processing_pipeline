@@ -127,15 +127,18 @@ def process(
         ###########
         # Do data splits for the data that survived QC
         ###########
-        wrappers.data_splits(df_stats, parent_dir=save_dir, upstream_tasks=[df_stats])
+        splits_dict = wrappers.data_splits(
+            df_stats, parent_dir=save_dir, upstream_tasks=[df_stats]
+        )
 
     state = flow.run(executor=executor)
 
     df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result
+    splits_dict = state.result[flow.get_tasks(name="data_splits")[0]].result
 
     log.info("Done!")
 
-    return
+    return df_stats, splits_dict
 
 
 ###############################################################################
