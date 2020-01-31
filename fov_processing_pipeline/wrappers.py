@@ -1,3 +1,13 @@
+"""
+wrappers.py: Base functions for the FOV processing pipeline called by process.py.
+
+Most functions have an @task decoration for Prefect pipelining.
+
+Each function performs a spcific task, and they should be listed in pipeline order. The file directory organization
+should be controlled by this file (e.g. no paths other than "parent_dir" should need to be specified.)
+
+"""
+
 import os
 import warnings
 import pandas as pd
@@ -7,6 +17,10 @@ from aicsimageio import imread, writers
 from prefect import task
 
 from . import data, utils, stats, reports, postprocess
+
+
+RAW_DIR = "raw"
+QC_DIR = "qc"
 
 
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
@@ -60,14 +74,14 @@ def im2stats(im):
 
 @task
 def save_load_data(
-    save_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"
+    parent_dir, protein_list=None, n_fovs=100, overwrite=False, dataset="quilt"
 ):
     """
     Retreives or loads data.
 
     Parameters
     ----------
-    save_dir: str
+    parent_dir: str
         save directory of results
 
     trim_data: bool or int
@@ -89,8 +103,12 @@ def save_load_data(
 
     """
 
-    cell_data_path = "{}/cell_data.csv".format(save_dir)
-    fov_data_path = "{}/fov_data.csv".format(save_dir)
+    save_dir = f"{parent_dir}/{RAW_DIR}/"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    cell_data_path = f"{save_dir}/cell_data.csv"
+    fov_data_path = f"{save_dir}/fov_data.csv"
 
     if not os.path.exists(cell_data_path) or overwrite:
 
@@ -99,7 +117,7 @@ def save_load_data(
                 protein_list=protein_list, n_fovs=n_fovs
             )
         elif dataset == "quilt":
-            image_dir = "{}/images".format(save_dir)
+            image_dir = f"{save_dir}/images/"
             cell_data, fov_data = data.quilt.get_data(
                 save_dir=image_dir,
                 protein_list=protein_list,
@@ -107,7 +125,7 @@ def save_load_data(
                 overwrite=overwrite,
             )
         else:
-            raise ValueError('unrecognized dataset parameter "{}"'.format(dataset))
+            raise ValueError(f"unrecognized dataset parameter {dataset}")
 
         cell_data.to_csv(cell_data_path)
         fov_data.to_csv(fov_data_path)
@@ -120,114 +138,36 @@ def save_load_data(
 
 
 @task
+def get_save_paths(parent_dir, fov_data):
+    # Sets up the save paths for all of the results
+
+    save_dir = f"{parent_dir}/{QC_DIR}/"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    summary_path = f"{save_dir}/summary.csv"
+
+    stats_paths = [
+        f"{save_dir}/plate_{row.PlateId}/stats_{row.FOVId}.pkl"
+        for i, row in fov_data.iterrows()
+    ]
+    proj_paths = [
+        f"{save_dir}/plate_{row.PlateId}/proj_{row.FOVId}.png"
+        for i, row in fov_data.iterrows()
+    ]
+
+    return summary_path, stats_paths, proj_paths
+
+
+@task
 def cell_data_to_summary_table(cell_data, summary_path):
     cell_line_summary_table = reports.cell_data_to_summary_table(cell_data)
-
     cell_line_summary_table.to_csv(summary_path)
 
 
 @task
-def data2stats(df, save_dir, overwrite=False, fov_flag=False):
-    ############################################
-    # For a given fov dataframe, calculate stats for each row's multichannel image and recompile into new stats df
-    # Inputs:
-    #   - df: dataframe of cell data including CYXZ images
-    #   - save_dir: directory to save stats dataframe
-    #   - overwrite: flag to overwrite if already exists
-    #   - fov_flag: true if FOV or false is cell dataframe is input, used for setting Id's
-    # Returns:
-    #   - results: dataframe with image stats for all cell or all fovs in dataframe
-    ############################################
-
-    if not fov_flag:
-        stats_path = "{}/cell_stats.csv".format(save_dir)
-        id = "CellId"
-    else:
-        stats_path = "{}/fov_stats.csv".format(save_dir)
-        id = "FOVId"
-
-    if not os.path.exists(stats_path) or overwrite:
-        stats_df = pd.DataFrame(
-            [im2stats(row2im(df.iloc[i])) for i in range(df.shape[0])]
-        )
-        stats_df[id] = df[id]
-
-        stats_df.to_csv(stats_path)
-
-    else:
-        stats_df = pd.read_csv(stats_path)
-
-    return stats_df
-
-
-@task
-def load_stats(df, stats_paths):
-    # consolidate stats?
-    stats_list = list()
-    for i, stats_path in enumerate(stats_paths):
-        if os.path.exists(stats_path):
-            with open(stats_path, "rb") as f:
-                stats = pickle.load(f)
-
-            stats["FOVId"] = df["FOVId"].iloc[i]
-            stats["FOVId_rng"] = df["FOVId_rng"].iloc[i]
-            stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
-            stats_list.append(stats)
-        else:
-            warnings.warn("{} is missing.".format(stats_path))
-
-    df_stats = pd.concat(stats_list, axis=0)
-
-    return df_stats
-
-
-@task
-def stats2plots(df_stats: pd.DataFrame, save_dir: str):
-    """
-    general stats to plots function, saves results to save_dir
-
-    Parameters
-    ----------
-    df_stats: pd.DataFrame
-        Big dataframe of statistics determined by the combination of data2stats and load_stats
-
-    """
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-
-    u_proteins = np.unique(df_stats.ProteinDisplayName)
-
-    for u_protein in u_proteins:
-        df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
-
-        stats.plot_im_percentiles(
-            df_stats_tmp,
-            save_path="{}/fov_stats_{}.png".format(save_dir, u_protein),
-            title=u_protein,
-        )
-
-        stats.z_intensity_profile.plot(
-            df_stats_tmp,
-            "{}/z_intensity_profile".format(save_dir),
-            suffix=u_protein,
-            center_on_channel="z_intensity_profile_Ch1",
-        )
-
-        stats.z_intensity_profile.plot(
-            df_stats_tmp,
-            "{}/z_intensity_profile_uncentered".format(save_dir),
-            suffix=u_protein,
-        )
-
-    # drop the non feature data
-
-    # TODO do this in a better way... probably use well annotated anndata instead of Pandas
-
-    stats.pca.plot(
-        df_stats.drop(["FOVId", "ProteinDisplayName"], axis=1),
-        save_dir,
-        labels=df_stats["ProteinDisplayName"],
-    )
+def get_data_rows(fov_data):
+    return [row[1] for row in fov_data.iterrows()]
 
 
 @task
@@ -265,18 +205,28 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
 
 
 @task
-def im2diagnostics(fov_data, proj_paths, save_dir, overwrite=False):
+def load_stats(df, stats_paths):
+    # consolidate stats?
+    stats_list = list()
+    for i, stats_path in enumerate(stats_paths):
+        if os.path.exists(stats_path):
+            with open(stats_path, "rb") as f:
+                stats = pickle.load(f)
 
-    warnings.warn("Overwrite checking currently not implemented.")
+            stats["FOVId"] = df["FOVId"].iloc[i]
+            stats["FOVId_rng"] = df["FOVId_rng"].iloc[i]
+            stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
+            stats_list.append(stats)
+        else:
+            warnings.warn(f"{stats_path} is missing.")
 
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    df_stats = pd.concat(stats_list, axis=0)
 
-    reports.im2bigim(proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, save_dir)
+    return df_stats
 
 
 @task
-def qc_stats(df_stats, save_path):
+def qc_stats(df_stats, save_parent):
     """
     Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the
     brightfield channel at the bottom of the image. This is an indicator of a slice being out of order, and we want
@@ -294,17 +244,86 @@ def qc_stats(df_stats, save_path):
         Saved as a .pickle as well.
     """
 
+    save_dir = f"{save_parent}/{QC_DIR}"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    save_path = f"{save_dir}/fov_stats_qc.csv"
+
     df_stats = postprocess.fov_qc(df_stats)
     df_stats = postprocess.zsize_qc(df_stats)
-    df_stats.to_pickle(save_path)
+    df_stats.to_csv(save_path)
 
     return df_stats
 
 
 @task
+def stats2plots(df_stats: pd.DataFrame, parent_dir: str):
+    """
+    general stats to plots function, saves results to parent_dir
+
+    Parameters
+    ----------
+    df_stats: pd.DataFrame
+        Big dataframe of statistics determined by the combination of data2stats and load_stats
+
+    """
+
+    save_dir = f"{parent_dir}/{QC_DIR}/plots/"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    u_proteins = np.unique(df_stats.ProteinDisplayName)
+
+    for u_protein in u_proteins:
+        df_stats_tmp = df_stats[u_protein == df_stats.ProteinDisplayName]
+
+        stats.plot_im_percentiles(
+            df_stats_tmp,
+            save_path=f"{save_dir}/fov_stats_{u_protein}.png",
+            title=u_protein,
+        )
+
+        stats.z_intensity_profile.plot(
+            df_stats_tmp,
+            f"{save_dir}/z_intensity_profile",
+            suffix=u_protein,
+            center_on_channel="z_intensity_profile_Ch1",
+        )
+
+        stats.z_intensity_profile.plot(
+            df_stats_tmp,
+            f"{save_dir}/z_intensity_profile_uncentered",
+            suffix=u_protein,
+        )
+
+    # drop the non feature data
+
+    # TODO do this in a better way... probably use well annotated anndata instead of Pandas
+
+    stats.pca.plot(
+        df_stats.drop(["FOVId", "ProteinDisplayName"], axis=1),
+        save_dir,
+        labels=df_stats["ProteinDisplayName"],
+    )
+
+
+@task
+def im2diagnostics(fov_data, proj_paths, parent_dir, overwrite=False):
+
+    warnings.warn("Overwrite checking currently not implemented.")
+
+    save_dir = f"{parent_dir}/{QC_DIR}/diagnostics"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    reports.im2bigim(proj_paths, fov_data.FOVId, fov_data.ProteinDisplayName, save_dir)
+
+
+@task
 def data_splits(
     df_stats,
-    save_dir,
+    parent_dir,
     split_names=["train", "validate", "test"],
     split_amounts=[0.8, 0.1, 0.1],
     group_column="ProteinDisplayName",
@@ -312,14 +331,14 @@ def data_splits(
 ):
     """
     Given a stats dataframe, split each unique entry of `group_column` into groups based on the `split_column random
-    number, and save those results in `save_dir` with the f"{save_dir}/{unique_group_column}_{train_or_test}.csv"
+    number, and save those results in `parent_dir` with the f"{parent_dir}/{unique_group_column}_{train_or_test}.csv"
 
     Parameters
     ----------
     df_stats: Dataframe
         A stats dataframe with the columns corresponding to `group_column` and `split_column`
 
-    save_dir: str
+    parent_dir: str
         Save directory for splits files
 
     split_names: list of strs
@@ -342,6 +361,8 @@ def data_splits(
     """
 
     # all these assertions should probably be raise.ValueError
+
+    save_dir = f"{parent_dir}/{QC_DIR}/data_splits/"
 
     # check for correct input
     assert np.sum(split_amounts) == 1
