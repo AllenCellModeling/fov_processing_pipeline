@@ -70,9 +70,14 @@ def test_save_load_data(demo_cell_data, demo_fov_data, tmpdir):
 
 def test_data_splits(demo_fov_data, tmpdir):
 
+    n_rows = 100
+    id_column = "FOVId"
+
     # Data Prep
     # the demo_fov_data is only one element, so we repeat it a few times, and rebuild the random numbers
-    demo_fov_data = pd.concat([demo_fov_data] * 100, 0)
+
+    demo_fov_data = pd.concat([demo_fov_data] * n_rows, 0)
+    demo_fov_data[id_column] = np.arange(0, n_rows)
     demo_fov_data["FOVId_rng"] = np.random.rand(demo_fov_data.shape[0])
 
     # have two structures
@@ -92,6 +97,7 @@ def test_data_splits(demo_fov_data, tmpdir):
         split_amounts=split_amounts,
         group_column="ProteinDisplayName",
         split_column="FOVId_rng",
+        id_column=id_column,
     )
 
     assert len(splits_dict) == len(np.unique(demo_fov_data["ProteinDisplayName"]))
@@ -106,7 +112,7 @@ def test_data_splits(demo_fov_data, tmpdir):
 
             assert os.path.exists(splits_dict[u_group][split_name]["save_path"])
 
-            inds_list.append(splits_dict[u_group][split_name]["split_inds"])
+            inds_list.append(splits_dict[u_group][split_name][id_column])
 
     inds_list = np.hstack(inds_list)
 
@@ -126,6 +132,7 @@ def test_data_splits(demo_fov_data, tmpdir):
             split_amounts=split_amounts_wrong,
             group_column="ProteinDisplayName",
             split_column="FOVId_rng",
+            id_column=id_column,
         )
 
     demo_fov_data_wrong = demo_fov_data.copy()
@@ -152,6 +159,7 @@ def test_data_splits(demo_fov_data, tmpdir):
             split_amounts=split_amounts,
             group_column="this column doesnt exist",
             split_column="FOVId_rng",
+            id_column=id_column,
         )
 
     # Not existing split column
@@ -163,4 +171,5 @@ def test_data_splits(demo_fov_data, tmpdir):
             split_amounts=split_amounts,
             group_column="ProteinDisplayName",
             split_column="this column doesnt exist",
+            id_column=id_column,
         )

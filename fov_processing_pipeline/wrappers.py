@@ -328,6 +328,7 @@ def data_splits(
     split_amounts=[0.8, 0.1, 0.1],
     group_column="ProteinDisplayName",
     split_column="FOVId_rng",
+    id_column="FOVId",
 ):
     """
     Given a stats dataframe, split each unique entry of `group_column` into groups based on the `split_column random
@@ -353,6 +354,9 @@ def data_splits(
 
     split_column: str
         Column with values that we split in. All values must be in the range of [0, 1). See: numpy.random.rand
+
+    id_column: str
+        Column corresponding to unique ids
 
     Returns
     -------
@@ -410,6 +414,9 @@ def data_splits(
 
             splits_dict[u_group][split_name] = {}
             splits_dict[u_group][split_name]["save_path"] = save_path
-            splits_dict[u_group][split_name]["split_inds"] = np.where(split_inds)[0]
+
+            splits_dict[u_group][split_name][id_column] = df_stats[id_column][
+                split_inds
+            ]
 
     return splits_dict

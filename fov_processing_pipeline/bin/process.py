@@ -97,35 +97,40 @@ def process(
         ###########
         # QC data based on previous thresholds, etc
         ###########
-        df_stats = wrappers.qc_stats(df_stats, save_dir)
+        df_stats_qc = wrappers.qc_stats(df_stats, save_dir)
 
-        ###########
-        # Make Plots
-        ###########
-        wrappers.stats2plots(df_stats, parent_dir=save_dir, upstream_tasks=[df_stats])
+        if not use_current_results:
 
-        ###########
-        # Make diagnostic images
-        ###########
-        wrappers.im2diagnostics(
-            fov_data, proj_paths, parent_dir=save_dir, upstream_tasks=[df_stats]
-        )
+            ###########
+            # Make Plots
+            ###########
+            wrappers.stats2plots(
+                df_stats_qc, parent_dir=save_dir, upstream_tasks=[df_stats_qc]
+            )
+
+            ###########
+            # Make diagnostic images
+            ###########
+            wrappers.im2diagnostics(
+                fov_data, proj_paths, parent_dir=save_dir, upstream_tasks=[df_stats]
+            )
 
         ###########
         # Do data splits for the data that survived QC
         ###########
         splits_dict = wrappers.data_splits(
-            df_stats, parent_dir=save_dir, upstream_tasks=[df_stats]
+            df_stats_qc, parent_dir=save_dir, upstream_tasks=[df_stats_qc]
         )
 
     state = flow.run(executor=executor)
 
+    fov_data = state.result[flow.get_tasks(name="save_load_data")[0]].result[1]
     df_stats = state.result[flow.get_tasks(name="load_stats")[0]].result
     splits_dict = state.result[flow.get_tasks(name="data_splits")[0]].result
 
     log.info("Done!")
 
-    return df_stats, splits_dict
+    return fov_data, df_stats, splits_dict
 
 
 ###############################################################################
