@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 from prefect import Flow, unmapped
+from prefect.engine.executors import LocalExecutor
 
 from fov_processing_pipeline import wrappers, utils
 
@@ -26,9 +27,8 @@ def process(
     overwrite: bool,
     use_current_results: bool,
     n_fovs: int = 100,
-    distributed: bool = False,
-    port: int = 99999,
     dataset: str = "quilt",
+    executor=LocalExecutor(),
 ):
     """
     Dask/Prefect distributed command for running pipeline
@@ -40,19 +40,6 @@ def process(
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-
-    # https://github.com/AllenCellModeling/scheduler_tools/blob/master/remote_job_scheduling.md
-
-    if distributed:
-        from prefect.engine.executors import DaskExecutor
-
-        executor = DaskExecutor(
-            address="tcp://localhost:{PORT}".format(**{"PORT": port})
-        )
-    else:
-        from prefect.engine.executors import LocalExecutor
-
-        executor = LocalExecutor()
 
     # This is the main function
     with Flow("FOV_processing_pipeline") as flow:
@@ -190,8 +177,24 @@ def main():
     )
 
     args = p.parse_args()
+    args = vars(args)
 
-    process(**vars(args))
+    distributed = args.pop("distributed")
+    port = args.pop("port")
+
+    # For distributed instructions see:
+    # https://github.com/AllenCellModeling/fov_processing_pipeline/blob/master/docs/distributed_instructions.md
+    if distributed:
+        from prefect.engine.executors import DaskExecutor
+
+        executor = DaskExecutor(address=f"tcp://localhost:{port}")
+
+    else:
+        executor = LocalExecutor()
+
+    args["executor"] = executor
+
+    process(**args)
 
 
 if __name__ == "__main__":

@@ -61,11 +61,12 @@ requirements = [
     "matplotlib",
     "aicsimageio",
     "scikit-learn",
-    "prefect",
+    "prefect==0.9.2",
     "quilt3==3.1.8",
     "docutils==0.15",
     "python-dateutil<=2.8.0",  # required by quilt3==3.1.8
     "urllib3<1.25,>=1.21.1",  # required by quilt3==3.1.8
+    "fsspec>=0.3.3",  # required by prefect==0.9.2
 ]
 
 extra_requirements = {
