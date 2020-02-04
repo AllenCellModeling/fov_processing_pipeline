@@ -31,7 +31,7 @@ dev_requirements = [
     "pytest-raises>=0.10",
     "pytest-runner>=4.4",
     "Sphinx>=2.0.0b1",
-    "sphinx_rtd_theme>=0.1.2",
+    "sphinx_rtd_theme>=0.1.3",
     "tox>=3.5.2",
     "twine>=1.13.0",
     "wheel>=0.33.1",
@@ -118,6 +118,6 @@ setup(
     url="https://github.com/AllenCellModeling/fov_processing_pipeline",
     # Do not edit this string manually, always use bumpversion
     # Details in CONTRIBUTING.rst
-    version="0.1.2",
+    version="0.1.3",
     zip_safe=False,
 )

@@ -27,7 +27,7 @@ def test_trim_data(demo_fov_data):
         [demo_fov_data for i in range(len(protein_list) * 2)]
     )
     demo_multi_fov_data["ProteinDisplayName"] = protein_list * 2
-    demo_multi_fov_data["FOVId_rng"] = range(len(protein_list) * 2)
+    demo_multi_fov_data["FOVId"] = range(len(protein_list) * 2)
 
     # check that trimming to one cell line works
     trim_df = utils.trim_data(demo_multi_fov_data, ["Fibrillarin"])
@@ -35,6 +35,7 @@ def test_trim_data(demo_fov_data):
 
     # check that trimming to a smaller number of fovs works
     trim_df = utils.trim_data(demo_multi_fov_data, ["Fibrillarin"], 1)
+
     assert trim_df.shape[0] == 1
 
     # check that trimming to a cell line list that is the same as the existing list does nothing
@@ -63,7 +64,7 @@ def test_trim_data_by_cellline_fov(demo_fov_data):
     )
     demo_multi_fov_data["ProteinDisplayName"] = protein_list * 2
     demo_multi_fov_data["CellLine"] = demo_multi_fov_data["ProteinDisplayName"]
-    demo_multi_fov_data["FOVId_rng"] = range(len(protein_list) * 2)
+    demo_multi_fov_data["FOVId"] = range(len(protein_list) * 2)
 
     # check that trimming to a smaller number of fovs works
     trim_df = utils.trim_data_by_cellline_fov_count(demo_multi_fov_data, 1)
