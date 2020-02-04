@@ -91,7 +91,7 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
         # make sure the desired number of fovs isn't greater than the number of available fovs
         if n_fovs <= pd.unique(df_struct["FOVId"]).shape[0]:
             keep_fov_ids.extend(
-                list(np.sort(pd.unique(df_struct["FOVId_rng"]))[:n_fovs],)
+                list(np.sort(pd.unique(df_struct["FOVId"]))[:n_fovs],)
             )
 
         else:
@@ -101,9 +101,9 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
                 + "."
             )
             warnings.warn("Keeping all FOVs for this cell line.")
-            keep_fov_ids.extend(pd.unique(df_struct["FOVId_rng"]))
+            keep_fov_ids.extend(pd.unique(df_struct["FOVId"]))
 
-    return df[df["FOVId_rng"].isin(keep_fov_ids)]
+    return df[df["FOVId"].isin(keep_fov_ids)]
 
 
 def trim_data(df, protein_list=None, n_fovs=100):
