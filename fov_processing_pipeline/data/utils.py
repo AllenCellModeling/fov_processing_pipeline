@@ -90,9 +90,7 @@ def trim_data_by_cellline_fov_count(df, n_fovs):
 
         # make sure the desired number of fovs isn't greater than the number of available fovs
         if n_fovs <= pd.unique(df_struct["FOVId"]).shape[0]:
-            keep_fov_ids.extend(
-                list(np.sort(pd.unique(df_struct["FOVId"]))[:n_fovs],)
-            )
+            keep_fov_ids.extend(list(np.sort(pd.unique(df_struct["FOVId"]))[:n_fovs],))
 
         else:
             warnings.warn(
