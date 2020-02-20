@@ -75,7 +75,7 @@ def get_data(
         for image_source_path, image_target_path in zip(
             fov_data["SourceReadPath_quilt"], fov_data["SourceReadPath"]
         ):
-            if os.path.exists(image_target_path) and not overwrite:
+            if os.path.exists(image_target_path):
                 continue
 
             # We only do this because T4 hates our filesystem. It probably wont affect you.

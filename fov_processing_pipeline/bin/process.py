@@ -91,13 +91,19 @@ def process(
         # Load relevant data as a reduce step
         ###########
         df_stats = wrappers.load_stats(
-            fov_data, stats_paths, upstream_tasks=upstream_tasks
+            fov_data,
+            stats_paths,
+            save_dir,
+            use_current_results=use_current_results,
+            upstream_tasks=upstream_tasks,
         )
 
         ###########
         # QC data based on previous thresholds, etc
         ###########
-        df_stats_qc = wrappers.qc_stats(df_stats, save_dir)
+        df_stats_qc = wrappers.qc_stats(
+            df_stats, save_dir, use_current_results=use_current_results
+        )
 
         if not use_current_results:
 

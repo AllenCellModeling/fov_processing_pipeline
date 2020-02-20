@@ -13,14 +13,19 @@ import warnings
 import pandas as pd
 import pickle
 import numpy as np
+
 from aicsimageio import imread, writers
+
 from prefect import task
+from prefect.triggers import any_successful
 
 from . import data, utils, stats, reports, postprocess
 
 
 RAW_DIR = "raw"
 QC_DIR = "qc"
+
+USE_CURRENT_RESULTS_DEFAULT = False
 
 
 def row2im(df_row, ch_order=["BF", "DNA", "Cell", "Struct"]):
@@ -180,7 +185,7 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     # overwrite - overwrite local data
 
     if os.path.exists(proj_path) and ~overwrite:
-        return
+        return True
 
     proj_dir = os.path.dirname(proj_path)
     if not os.path.exists(proj_dir):
@@ -201,32 +206,46 @@ def process_fov_row(fov_row, stats_path, proj_path, overwrite=False):
     with writers.PngWriter(proj_path) as writer:
         writer.save(im_proj)
 
-    return
+    return True
 
 
-@task
-def load_stats(df, stats_paths):
+@task(trigger=any_successful)
+def load_stats(
+    df, stats_paths, save_parent, use_current_results=USE_CURRENT_RESULTS_DEFAULT
+):
     # consolidate stats?
-    stats_list = list()
-    for i, stats_path in enumerate(stats_paths):
-        if os.path.exists(stats_path):
-            with open(stats_path, "rb") as f:
-                stats = pickle.load(f)
 
-            stats["FOVId"] = df["FOVId"].iloc[i]
-            stats["FOVId_rng"] = df["FOVId_rng"].iloc[i]
-            stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
-            stats_list.append(stats)
-        else:
-            warnings.warn(f"{stats_path} is missing.")
+    save_dir = f"{save_parent}/{QC_DIR}"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    df_stats = pd.concat(stats_list, axis=0)
+    save_path = f"{save_dir}/fov_stats.csv"
+
+    if not os.path.exists(save_path) or not use_current_results:
+        stats_list = list()
+        for i, stats_path in enumerate(stats_paths):
+            if os.path.exists(stats_path):
+                with open(stats_path, "rb") as f:
+                    stats = pickle.load(f)
+
+                stats["FOVId"] = df["FOVId"].iloc[i]
+                stats["FOVId_rng"] = df["FOVId_rng"].iloc[i]
+                stats["ProteinDisplayName"] = df["ProteinDisplayName"].iloc[i]
+                stats_list.append(stats)
+            else:
+                warnings.warn(f"{stats_path} is missing.")
+
+        df_stats = pd.concat(stats_list, axis=0)
+        df_stats.to_csv(save_path)
+
+    else:
+        df_stats = pd.read_csv(save_path)
 
     return df_stats
 
 
 @task
-def qc_stats(df_stats, save_parent):
+def qc_stats(df_stats, save_parent, use_current_results=USE_CURRENT_RESULTS_DEFAULT):
     """
     Given a stats dataframe, check for any FOV's that have their brightest average intensity for a zslice in the
     brightfield channel at the bottom of the image. This is an indicator of a slice being out of order, and we want
@@ -237,6 +256,7 @@ def qc_stats(df_stats, save_parent):
     df: Dataframe
         A stats dataframe, containing rows corresponding to FOVs, and having a column with the mean intensity for the
         DNA channel, for each zslice in each FOV.
+        
     Returns
     -------
     df: Dataframe
@@ -250,9 +270,14 @@ def qc_stats(df_stats, save_parent):
 
     save_path = f"{save_dir}/fov_stats_qc.csv"
 
-    df_stats = postprocess.fov_qc(df_stats)
-    df_stats = postprocess.zsize_qc(df_stats)
-    df_stats.to_csv(save_path)
+    if not os.path.exists(save_path) or not use_current_results:
+
+        df_stats = postprocess.fov_qc(df_stats)
+        df_stats = postprocess.zsize_qc(df_stats)
+        df_stats.to_csv(save_path)
+
+    else:
+        df_stats = pd.read_csv(save_path)
 
     return df_stats
 
